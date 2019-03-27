@@ -4,11 +4,22 @@ import pygame
 
 import constants as const
 
-def add_wall(walls):
-    walls.append(Wall(walls[-1].rect.left + const.WALL_DISTANCE, 240))
+def add_walls(walls):
+    if not walls:
+        x = const.WIDTH
+    else:
+        x = walls[-1][0].rect.left + const.WALL_DISTANCE
+    
+    variance = random.randint(-const.Y_VARIANCE, const.Y_VARIANCE) * 2
+    lower_y = (const.HEIGHT // 2) + (const.HOLE_SIZE // 2) \
+              + variance
+    upper_y = (const.HEIGHT // 2) - (const.HOLE_SIZE // 2) \
+              - Wall.image.get_size()[1] + variance
+    
+    walls.append((Wall(x, lower_y), Wall(x, upper_y)))
     return
 
-def remove_wall(walls):
+def remove_walls(walls):
     walls.pop(0)
     return
 
@@ -18,14 +29,22 @@ def reset_game():
     global velocity
     velocity = 0
     ball = Ball()
-    walls = [Wall(const.WIDTH, 240)]
+    walls = []
     for i in range(5):
-        add_wall(walls)
+        add_walls(walls)
 
 def load_image(file):
     image = pygame.image.load(file)
     image = pygame.transform.scale(image, [x * 2 for x in image.get_size()])
     return image
+
+def collision(ball, wall_pair):
+    if ball.rect.right >= wall_pair[0].rect.left and \
+        ball.rect.left <= wall_pair[0].rect.right:
+        return ball.rect.bottom >= wall_pair[0].rect.top or \
+            ball.rect.top <= wall_pair[1].rect.bottom
+    else:
+        return False
 
 class Ball:
     image = load_image("blue_ball.png")
@@ -63,12 +82,13 @@ if __name__ == "__main__":
         
         ball.rect = ball.rect.move((0, velocity))
         velocity = velocity + const.GRAVITY
-        for wall in walls:
-            wall.rect = wall.rect.move((-const.MOVE_SPEED, 0))
+        for wall_pair in walls:
+            for wall in wall_pair:
+                wall.rect = wall.rect.move((-const.MOVE_SPEED, 0))
         
-        if walls[0].rect.right < 0:
-            remove_wall(walls)
-            add_wall(walls)
+        if walls[0][0].rect.right < 0:
+            remove_walls(walls)
+            add_walls(walls)
 
         pressed_keys = pygame.key.get_pressed()
         if pressed_keys[pygame.K_SPACE]:
@@ -78,10 +98,14 @@ if __name__ == "__main__":
         if ball.rect.top < 0 or ball.rect.bottom > const.HEIGHT:
             reset_game()
         
+        if collision(ball, walls[0]):
+            reset_game()
+        
         # draw screen
         screen.fill(const.WHITE)
         screen.blit(ball.image, ball.rect)
-        for wall in walls:
-            screen.blit(wall.image, wall.rect)
+        for wall_pair in walls:
+            for wall in wall_pair:
+                screen.blit(wall.image, wall.rect)
         pygame.display.flip()
 
