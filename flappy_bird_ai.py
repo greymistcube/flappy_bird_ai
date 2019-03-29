@@ -10,7 +10,7 @@ def add_walls(walls):
     else:
         x = walls[-1][0].rect.left + const.WALL_DISTANCE
     
-    variance = random.randint(-const.Y_VARIANCE, const.Y_VARIANCE) * 2
+    variance = random.randint(-const.Y_VARIANCE, const.Y_VARIANCE)
     lower_y = (const.HEIGHT // 2) + (const.HOLE_SIZE // 2) \
               + variance
     upper_y = (const.HEIGHT // 2) - (const.HOLE_SIZE // 2) \
@@ -35,7 +35,6 @@ def reset_game():
 
 def load_image(file):
     image = pygame.image.load(file)
-    image = pygame.transform.scale(image, [x * 2 for x in image.get_size()])
     return image
 
 def collision(ball, wall_pair):
@@ -64,7 +63,8 @@ class Wall:
 
 if __name__ == "__main__":
     pygame.init()
-    screen = pygame.display.set_mode(const.SIZE)
+    screen = pygame.display.set_mode([x * const.ZOOM for x in const.SIZE])
+    canvas = pygame.Surface(const.SIZE)
     clock = pygame.time.Clock()
 
     # initialize game before starting
@@ -102,10 +102,17 @@ if __name__ == "__main__":
             reset_game()
         
         # draw screen
-        screen.fill(const.WHITE)
-        screen.blit(ball.image, ball.rect)
+        canvas.fill(const.WHITE)
+        canvas.blit(ball.image, ball.rect)
         for wall_pair in walls:
             for wall in wall_pair:
-                screen.blit(wall.image, wall.rect)
+                canvas.blit(wall.image, wall.rect)
+        # screen.fill(const.WHITE)
+        # screen.blit(ball.image, ball.rect)
+        #for wall_pair in walls:
+        #    for wall in wall_pair:
+        #        screen.blit(wall.image, wall.rect)
+        zoomed_canvas = pygame.transform.scale(canvas, [x * const.ZOOM for x in canvas.get_size()])
+        screen.blit(zoomed_canvas, zoomed_canvas.get_rect())
         pygame.display.flip()
 
