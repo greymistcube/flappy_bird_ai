@@ -75,31 +75,39 @@ if __name__ == "__main__":
         # set tick rate to 60 per second
         clock.tick(60)
 
-        # close game
+        # close game and terminate process
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
         
+        # move the ball
         ball.rect = ball.rect.move((0, velocity))
         velocity = velocity + const.GRAVITY
+        
+        # move the walls
         for wall_pair in walls:
             for wall in wall_pair:
                 wall.rect = wall.rect.move((-const.MOVE_SPEED, 0))
         
+        # remove the wall pair if it gets past the screen and add in a new pair
         if walls[0][0].rect.right < 0:
             remove_walls(walls)
             add_walls(walls)
 
+        # jump if the spacebar is pressed
         pressed_keys = pygame.key.get_pressed()
         if pressed_keys[pygame.K_SPACE]:
             velocity = const.JUMP_VELOCITY
 
-        # check if the pc is out of bounds
+        # check if the ball is out of bounds
         if ball.rect.top < 0 or ball.rect.bottom > const.HEIGHT:
             reset_game()
+            continue
         
+        # check if the ball has collided with a wall
         if collision(ball, walls[0]):
             reset_game()
+            continue
         
         # draw screen
         canvas.fill(const.WHITE)
@@ -107,11 +115,6 @@ if __name__ == "__main__":
         for wall_pair in walls:
             for wall in wall_pair:
                 canvas.blit(wall.image, wall.rect)
-        # screen.fill(const.WHITE)
-        # screen.blit(ball.image, ball.rect)
-        #for wall_pair in walls:
-        #    for wall in wall_pair:
-        #        screen.blit(wall.image, wall.rect)
         zoomed_canvas = pygame.transform.scale(canvas, [x * const.ZOOM for x in canvas.get_size()])
         screen.blit(zoomed_canvas, zoomed_canvas.get_rect())
         pygame.display.flip()
