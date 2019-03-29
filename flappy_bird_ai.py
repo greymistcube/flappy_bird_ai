@@ -27,6 +27,8 @@ def reset_game():
     global ball
     global walls
     global velocity
+    global score
+    score = 0
     velocity = 0
     ball = Ball()
     walls = []
@@ -66,6 +68,7 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode([x * const.ZOOM for x in const.SIZE])
     canvas = pygame.Surface(const.SIZE)
     clock = pygame.time.Clock()
+    font = pygame.font.SysFont("FreeMono", 16)
 
     # initialize game before starting
     reset_game()
@@ -74,6 +77,7 @@ if __name__ == "__main__":
     while True:
         # set tick rate to 60 per second
         clock.tick(60)
+        score = score + 1
 
         # close game and terminate process
         for event in pygame.event.get():
@@ -115,6 +119,9 @@ if __name__ == "__main__":
         for wall_pair in walls:
             for wall in wall_pair:
                 canvas.blit(wall.image, wall.rect)
+        text = font.render("Score: " + str(score), True, const.BLACK)
+        canvas.blit(text, (0, 0))
+
         zoomed_canvas = pygame.transform.scale(canvas, [x * const.ZOOM for x in canvas.get_size()])
         screen.blit(zoomed_canvas, zoomed_canvas.get_rect())
         pygame.display.flip()
