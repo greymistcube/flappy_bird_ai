@@ -42,6 +42,7 @@ class Wall:
     def move(self, speed):
         self.lower = self.lower.move((-speed, 0))
         self.upper = self.upper.move((-speed, 0))
+        self.x = self.x - speed
         return
 
 def add_wall(walls):
@@ -146,6 +147,4 @@ if __name__ == "__main__":
         
         # score is equal to the number of ticks since the start
         score = score + 1
-
-
 
