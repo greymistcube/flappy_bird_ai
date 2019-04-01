@@ -4,47 +4,14 @@ import pygame
 
 import constants as const
 
-def add_walls(walls):
-    if not walls:
-        x = const.WIDTH
-    else:
-        x = walls[-1][0].rect.left + const.WALL_DISTANCE
-    
-    variance = random.randint(-const.Y_VARIANCE, const.Y_VARIANCE) * 2
-    lower_y = (const.HEIGHT // 2) + (const.HOLE_SIZE // 2) \
-              + variance
-    upper_y = (const.HEIGHT // 2) - (const.HOLE_SIZE // 2) \
-              - Wall.image.get_size()[1] + variance
-    
-    walls.append((Wall(x, lower_y), Wall(x, upper_y)))
-    return
-
-def remove_walls(walls):
-    walls.pop(0)
-    return
-
-def reset_game():
-    global ball
-    global walls
-    global velocity
-    velocity = 0
-    ball = Ball()
-    walls = []
-    for i in range(5):
-        add_walls(walls)
+ball = None
+walls = []
+velocity = 0
+score = 0
 
 def load_image(file):
     image = pygame.image.load(file)
-    image = pygame.transform.scale(image, [x * 2 for x in image.get_size()])
     return image
-
-def collision(ball, wall_pair):
-    if ball.rect.right >= wall_pair[0].rect.left and \
-        ball.rect.left <= wall_pair[0].rect.right:
-        return ball.rect.bottom >= wall_pair[0].rect.top or \
-            ball.rect.top <= wall_pair[1].rect.bottom
-    else:
-        return False
 
 class Ball:
     image = load_image("blue_ball.png")
@@ -53,19 +20,76 @@ class Ball:
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(const.START_POSITION)
         return
+    
+    def move(self, velocity):
+        self.rect = self.rect.move((0, velocity))
+        return
 
 class Wall:
     image = load_image("brick_wall.png")
 
     def __init__(self, x, y):
-        self.rect = self.image.get_rect()
-        self.rect = self.rect.move([x, y])
+        self.lower = self.image.get_rect()
+        self.upper = self.image.get_rect()
+        lower_y = y + (const.HOLE_SIZE // 2)
+        upper_y = y - ((const.HOLE_SIZE // 2) + self.image.get_size()[1])
+        self.lower = self.lower.move((x, lower_y))
+        self.upper = self.upper.move((x, upper_y))
+        self.x = x
+        self.y = y
         return
+    
+    def move(self, speed):
+        self.lower = self.lower.move((-speed, 0))
+        self.upper = self.upper.move((-speed, 0))
+        self.x = self.x - speed
+        return
+
+def add_wall(walls):
+    # if no wall exists, add one at the right end of the screen
+    # otherwise, add one some distance away from the right-most one
+    if not walls:
+        x = const.WIDTH
+    else:
+        x = walls[-1].x + const.WALL_DISTANCE
+    
+    variance = random.randint(-const.Y_VARIANCE, const.Y_VARIANCE)
+    y = (const.HEIGHT // 2) + variance
+
+    walls.append(Wall(x, y))
+    return
+
+def remove_wall(walls):
+    walls.pop(0)
+    return
+
+def reset_game():
+    global ball
+    global walls
+    global velocity
+    global score
+    score = 0
+    velocity = 0
+    ball = Ball()
+    walls = []
+    for _ in range(5):
+        add_wall(walls)
+
+def collision(ball, walls):
+    wall = walls[0]
+    if ball.rect.right >= wall.lower.left and \
+        ball.rect.left <= wall.lower.right:
+        return ball.rect.bottom >= wall.lower.top or \
+            ball.rect.top <= wall.upper.bottom
+    else:
+        return False
 
 if __name__ == "__main__":
     pygame.init()
-    screen = pygame.display.set_mode(const.SIZE)
+    screen = pygame.display.set_mode([x * const.ZOOM for x in const.SIZE])
+    canvas = pygame.Surface(const.SIZE)
     clock = pygame.time.Clock()
+    font = pygame.font.SysFont("FreeMono", 16)
 
     # initialize game before starting
     reset_game()
@@ -75,37 +99,52 @@ if __name__ == "__main__":
         # set tick rate to 60 per second
         clock.tick(60)
 
-        # close game
+        # close game and terminate process
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
         
-        ball.rect = ball.rect.move((0, velocity))
+        # move the ball
+        ball.move(velocity)
         velocity = velocity + const.GRAVITY
-        for wall_pair in walls:
-            for wall in wall_pair:
-                wall.rect = wall.rect.move((-const.MOVE_SPEED, 0))
         
-        if walls[0][0].rect.right < 0:
-            remove_walls(walls)
-            add_walls(walls)
+        # move the walls
+        for wall in walls:
+            wall.move(const.MOVE_SPEED)
+        
+        # remove the wall pair if it gets past the screen and add in a new pair
+        if walls[0].lower.right < 0:
+            remove_wall(walls)
+            add_wall(walls)
 
+        # jump if the spacebar is pressed
         pressed_keys = pygame.key.get_pressed()
         if pressed_keys[pygame.K_SPACE]:
             velocity = const.JUMP_VELOCITY
 
-        # check if the pc is out of bounds
+        # check if the ball is out of bounds
         if ball.rect.top < 0 or ball.rect.bottom > const.HEIGHT:
             reset_game()
+            continue
         
-        if collision(ball, walls[0]):
+        # check if the ball has collided with a wall
+        if collision(ball, walls):
             reset_game()
+            continue
         
         # draw screen
-        screen.fill(const.WHITE)
-        screen.blit(ball.image, ball.rect)
-        for wall_pair in walls:
-            for wall in wall_pair:
-                screen.blit(wall.image, wall.rect)
+        canvas.fill(const.WHITE)
+        canvas.blit(ball.image, ball.rect)
+        for wall in walls:
+            canvas.blit(wall.image, wall.lower)
+            canvas.blit(wall.image, wall.upper)
+        text = font.render("Score: " + str(score), True, const.BLACK)
+        canvas.blit(text, (0, 0))
+
+        zoomed_canvas = pygame.transform.scale(canvas, [x * const.ZOOM for x in canvas.get_size()])
+        screen.blit(zoomed_canvas, zoomed_canvas.get_rect())
         pygame.display.flip()
+        
+        # score is equal to the number of ticks since the start
+        score = score + 1
 
