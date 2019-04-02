@@ -18,31 +18,42 @@ class Ball:
 
     def __init__(self):
         self.rect = self.image.get_rect()
-        self.rect = self.rect.move(const.START_POSITION)
+        self.x, self.y = const.START_POSITION
+        self.rect.center = (self.x, self.y)
+        self.velocity = 0
         return
     
-    def move(self, velocity):
-        self.rect = self.rect.move((0, velocity))
+    def move(self):
+        self.rect = self.rect.move((0, self.velocity))
+        self.y = self.y + self.velocity
         return
+    
+    def accelerate(self):
+        self.velocity = self.velocity + const.GRAVITY
+        return
+    
+    def jump(self):
+        self.velocity = const.JUMP_VELOCITY
 
 class Wall:
     image = load_image("brick_wall.png")
 
+    # here, (x, y) correspond to the center of a wall
     def __init__(self, x, y):
         self.lower = self.image.get_rect()
         self.upper = self.image.get_rect()
-        lower_y = y + (const.HOLE_SIZE // 2)
-        upper_y = y - ((const.HOLE_SIZE // 2) + self.image.get_size()[1])
-        self.lower = self.lower.move((x, lower_y))
-        self.upper = self.upper.move((x, upper_y))
+        y_offset = (const.HOLE_SIZE + self.image.get_height()) // 2
+        self.lower.center = (x, y + y_offset)
+        self.upper.center = (x, y - y_offset)
         self.x = x
         self.y = y
+        self.speed = const.MOVE_SPEED
         return
     
-    def move(self, speed):
-        self.lower = self.lower.move((-speed, 0))
-        self.upper = self.upper.move((-speed, 0))
-        self.x = self.x - speed
+    def move(self):
+        self.lower = self.lower.move((self.speed, 0))
+        self.upper = self.upper.move((self.speed, 0))
+        self.x = self.x - self.speed
         return
 
 def add_wall(walls):
@@ -66,10 +77,8 @@ def remove_wall(walls):
 def reset_game():
     global ball
     global walls
-    global velocity
     global score
     score = 0
-    velocity = 0
     ball = Ball()
     walls = []
     for _ in range(5):
@@ -105,12 +114,12 @@ if __name__ == "__main__":
                 sys.exit()
         
         # move the ball
-        ball.move(velocity)
-        velocity = velocity + const.GRAVITY
+        ball.move()
+        ball.accelerate()
         
         # move the walls
         for wall in walls:
-            wall.move(const.MOVE_SPEED)
+            wall.move()
         
         # remove the wall pair if it gets past the screen and add in a new pair
         if walls[0].lower.right < 0:
@@ -120,7 +129,7 @@ if __name__ == "__main__":
         # jump if the spacebar is pressed
         pressed_keys = pygame.key.get_pressed()
         if pressed_keys[pygame.K_SPACE]:
-            velocity = const.JUMP_VELOCITY
+            ball.jump()
 
         # check if the ball is out of bounds
         if ball.rect.top < 0 or ball.rect.bottom > const.HEIGHT:
