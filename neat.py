@@ -17,6 +17,25 @@ class Genome:
             )) - 0.5)
 
         return
+
+    def mutate(self):
+        prob = 0.5
+        mask_one = np.random.choice(
+            [0, 1],
+            size = self.weights_one.shape,
+            p=[1 - prob, prob]
+        )
+        mask_two = np.random.choice(
+            [0, 1],
+            size = self.weights_two.shape,
+            p=[1 - prob, prob]
+        )
+        var_one = (np.random.random(self.weights_one.shape) - 0.5) * 0.1
+        var_two = (np.random.random(self.weights_two.shape) - 0.5) * 0.1
+
+        self.weights_one = self.weights_one + (var_one * mask_one)
+        self.weights_two = self.weights_two + (var_two * mask_two)
+        return
     
     def add_hidden_node(self):
         self.weights_one = np.append(
