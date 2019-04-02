@@ -2,6 +2,19 @@ import numpy as np
 import random
 import copy
 
+class Population:
+    pop_size = 100
+    top_survival = 20
+    mutate = 40
+    breed = 40
+
+    def __init__(self):
+        self.generation = 1
+        return
+    
+    def evolve(self):
+        return
+
 class Genome:
     def __init__(self, num_inputs, num_outputs, random_weights=True):
         self.num_inputs = num_inputs
@@ -85,6 +98,10 @@ def breed(genomes):
     child = Genome(parents[0].num_inputs, parents[0].num_outputs, random_weights=False)
     child.w1 = w1
     child.w2 = w2
+    if parents[0].score > parents[1].score:
+        child.bias = parents[0].bias
+    else:
+        child.bias = parents[1].bias
     return child
 
 # takes two numpy arrays and produces a child by breeding
@@ -119,20 +136,20 @@ def mutate(genome):
     mutated = copy.deepcopy(genome)
 
     prob = 0.5
-    mask_one = np.random.choice(
+    mask1 = np.random.choice(
         [0, 1],
         size=mutated.w1.shape,
         p=[1 - prob, prob]
     )
-    mask_two = np.random.choice(
+    mask2 = np.random.choice(
         [0, 1],
         size=mutated.w2.shape,
         p=[1 - prob, prob]
     )
-    var_one = (np.random.random(mutated.w1.shape) - 0.5) * 0.1
-    var_two = (np.random.random(mutated.w2.shape) - 0.5) * 0.1
+    var1 = (np.random.random(mutated.w1.shape) - 0.5) * 0.1
+    var2 = (np.random.random(mutated.w2.shape) - 0.5) * 0.1
 
-    mutated.w1 = mutated.w1 + (var_one * mask_one)
-    mutated.w2 = mutated.w2 + (var_two * mask_two)
+    mutated.w1 = mutated.w1 + (var1 * mask1)
+    mutated.w2 = mutated.w2 + (var2 * mask2)
     
     return mutated
