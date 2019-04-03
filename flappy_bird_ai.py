@@ -4,11 +4,6 @@ import pygame
 
 import constants as const
 
-ball = None
-walls = []
-velocity = 0
-score = 0
-
 def load_image(file):
     image = pygame.image.load(file)
     return image
@@ -66,6 +61,7 @@ class Wall:
 class GameEnvironment:
     def __init__(self):
         self.walls = []
+        self.surface = pygame.Surface(const.SIZE)
         return
     
     def add_ball(self):
@@ -83,14 +79,43 @@ class GameEnvironment:
         variance = random.randint(-const.Y_VARIANCE, const.Y_VARIANCE)
         y = (const.HEIGHT // 2) + variance
 
-        if self.walls:
-             print(self.walls[-1].x)
         self.walls.append(Wall(x, y))
         return
     
     def remove_wall(self):
         self.walls.pop(0)
         return
+    
+    def update(self, pressed_keys):
+        # move game objects
+        self.ball.move()
+        self.ball.accelerate()
+        for wall in self.walls:
+            wall.move()
+
+        # remove a wall if it gets past the screen and add in a new one
+        if self.walls[0].out_of_bounds():
+            self.remove_wall()
+            self.add_wall()
+        
+        if pressed_keys[pygame.K_SPACE]:
+            self.ball.jump()
+
+        return
+    
+    def check_game_over(self):
+        return self.ball.out_of_bounds() or collision(self)
+    
+    def draw(self):
+        self.surface.fill(const.WHITE)
+        self.surface.blit(self.ball.image, self.ball.rect)
+        for wall in self.walls:
+            self.surface.blit(wall.image, wall.lower)
+            self.surface.blit(wall.image, wall.upper)
+        text = font.render("Score: " + str(self.ball.score), True, const.BLACK)
+        self.surface.blit(text, (0, 0))
+        return self.surface
+
 
 def new_game():
     env = GameEnvironment()
@@ -115,7 +140,6 @@ def collision(env):
 if __name__ == "__main__":
     pygame.init()
     screen = pygame.display.set_mode([x * const.ZOOM for x in const.SIZE])
-    canvas = pygame.Surface(const.SIZE)
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("FreeMono", 16)
 
@@ -132,45 +156,19 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 sys.exit()
         
-        # move the ball
-        env.ball.move()
-        env.ball.accelerate()
-        
-        # move the walls
-        for wall in env.walls:
-            wall.move()
-        
-        # remove a wall if it gets past the screen and add in a new one
-        if env.walls[0].out_of_bounds():
-            env.remove_wall()
-            env.add_wall()
-
-        # jump if the spacebar is pressed
+        # update game state
         pressed_keys = pygame.key.get_pressed()
-        if pressed_keys[pygame.K_SPACE]:
-            env.ball.jump()
+        env.update(pressed_keys)
 
-        # check if the ball is out of bounds
-        if env.ball.out_of_bounds():
-            env = new_game()
-            continue
-        
-        # check if the ball has collided with a wall
-        if collision(env):
+        # check for game over
+        if env.check_game_over():
             env = new_game()
             continue
         
         # draw screen
-        canvas.fill(const.WHITE)
-        canvas.blit(env.ball.image, env.ball.rect)
-        for wall in env.walls:
-            canvas.blit(wall.image, wall.lower)
-            canvas.blit(wall.image, wall.upper)
-        text = font.render("Score: " + str(env.ball.score), True, const.BLACK)
-        canvas.blit(text, (0, 0))
-
-        zoomed_canvas = pygame.transform.scale(canvas, [x * const.ZOOM for x in canvas.get_size()])
-        screen.blit(zoomed_canvas, zoomed_canvas.get_rect())
+        surface = env.draw()
+        surface = pygame.transform.scale(surface, [x * const.ZOOM for x in surface.get_size()])
+        screen.blit(surface, surface.get_rect())
         pygame.display.flip()
         
         # score is equal to the number of ticks since the start
