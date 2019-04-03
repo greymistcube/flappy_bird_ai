@@ -35,6 +35,14 @@ class Population:
 
         self.generation += 1
         return
+    
+    def predicts(self, all_inputs):
+        predicts = []
+        for i in range(len(self.genomes)):
+            genome = self.genomes[i]
+            inputs = all_inputs[i]
+            predicts.append(genome.predict(inputs))
+        return predicts
 
 class Genome:
     def __init__(self, num_inputs, num_outputs, random_weights=True):
