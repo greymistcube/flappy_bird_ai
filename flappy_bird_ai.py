@@ -15,15 +15,18 @@ class Ball:
     def __init__(self):
         self.rect = self.image.get_rect()
         self.x, self.y = const.START_POSITION
+        # self.x = const.START_POSITION[0]
+        # self.y = random.randint(80, const.HEIGHT - 80)
         self.rect.center = (self.x, self.y)
-        self.velocity = 0
+        self.velocity = 0.0
         self.score = 0
         self.alive = True
         return
     
     def move(self):
-        self.rect = self.rect.move((0, self.velocity))
+        # huge pain by using move instead of center
         self.y = self.y + self.velocity
+        self.rect.center = (self.x, self.y)
         return
     
     def accelerate(self):
@@ -79,6 +82,7 @@ class GameEnvironment:
         # if no wall exists, add one at the right end of the screen
         # otherwise, add one some distance away from the right-most one
         if not self.walls:
+            print('reset walls')
             x = const.WIDTH
         else:
             x = self.walls[-1].x + const.WALL_DISTANCE
@@ -138,19 +142,32 @@ class GameEnvironment:
         for wall in self.walls:
             self.surface.blit(wall.image, wall.lower)
             self.surface.blit(wall.image, wall.upper)
-        # text = font.render("Score: " + str(self.ball.score), True, const.BLACK)
-        # self.surface.blit(text, (0, 0))
+        num_alive = sum([ball.alive for ball in self.balls])
+        alive_text = font.render("Alive: " + str(num_alive), True, const.BLACK)
+        wall0_text = font.render(
+            "Wall0: " + str(self.walls[0].y) + ', ' + str(self.walls[0].x),
+            True, const.BLACK
+            )
+        wall1_text = font.render(
+            "Wall1: " + str(self.walls[1].y) + ', ' + str(self.walls[1].x),
+            True, const.BLACK
+            )
+        self.surface.blit(alive_text, (0, 0))
+        # debug info on game screen
+        # self.surface.blit(wall0_text, (0, 16))
+        # self.surface.blit(wall1_text, (0, 32))
         return self.surface
 
 def new_game(ai):
     if ai == "neat":
-        env = GameEnvironment(num_balls=100)
+        env = GameEnvironment(num_balls=neat.Population.pop_size)
     else:
         env = GameEnvironment()
 
     return env
 
 def collision(ball, walls):
+    # return False
     wall = walls[0]
 
     # for the current setup, we only need to check with the first wall
@@ -161,27 +178,41 @@ def collision(ball, walls):
     else:
         return False
 
-def get_all_inputs(env):
-    all_inputs = []
+def get_inputs(env):
+    inputs = []
     for ball in env.balls:
-        inputs = []
-        inputs.append(ball.y)
-        inputs.append(ball.velocity)
-        inputs.append(env.walls[0].x)
-        inputs.append(env.walls[0].y)
-        inputs.append(env.walls[1].x)
-        inputs.append(env.walls[1].y)
-        all_inputs.append(inputs)
-    return all_inputs
+        # skip dead balls
+        if ball.alive:
+            # get the next wall
+            if env.walls[0].lower.right > ball.rect.left:
+                next_wall = env.walls[0]
+            else:
+                next_wall = env.walls[1]
+            # append normalized input
+            inputs.append([
+                ball.y / const.HEIGHT,
+                ball.velocity / 10,
+                next_wall.y / const.HEIGHT
+            ])
+        else:
+            inputs.append([0, 0, 0])
+    return inputs
 
-def get_all_outputs(population, all_inputs):
-    return population.predicts(all_inputs)
+def get_outputs(population, inputs):
+    return population.predicts(inputs)
+
+def get_scores(env):
+    scores = []
+    for ball in env.balls:
+        scores.append(ball.score)
+    return scores
 
 if __name__ == "__main__":
+    score_history = []
     ai = ""
     if len(sys.argv) > 1 and sys.argv[1] == "neat":
         ai = "neat"
-        population = neat.Population(num_inputs=6, num_outputs=1)
+        population = neat.Population(num_inputs=3, num_outputs=1)
     
     pygame.init()
     screen = pygame.display.set_mode([x * const.ZOOM for x in const.SIZE])
@@ -194,7 +225,11 @@ if __name__ == "__main__":
     # main loop
     while True:
         # set tick rate to 60 per second
-        clock.tick(60)
+        if ai == "neat":
+            clock.tick(0)
+            pass
+        else:
+            clock.tick(60)
 
         # close the game and terminate process
         for event in pygame.event.get():
@@ -203,22 +238,30 @@ if __name__ == "__main__":
         
         # update game state
         if ai == "neat":
-            all_inputs = get_all_inputs(env)
-            all_outputs = get_all_outputs(population, all_inputs)
-            print(all_outputs)
-            env.update(all_outputs)
+            inputs = get_inputs(env)
+            outputs = get_outputs(population, inputs)
+            env.update(outputs)
         else:
             pressed_keys = pygame.key.get_pressed()
             if pressed_keys[pygame.K_SPACE]:
-                env.update([True])
+                env.update([[True]])
             else:
-                env.update([False])
+                env.update([[False]])
 
         # check for game over
         if env.check_game_over():
-            env = new_game(ai)
             if ai == "neat":
+                scores = get_scores(env)
+                temp = [score for score in scores]
+                temp.sort()
+                score_history.append(sum(temp[-10:]) / len(temp[-10:]))
+                population.score_genomes(scores)
+                hiddens = [genome.num_hiddens for genome in population.genomes]
                 population.evolve()
+                # just some debug info
+                print(population.generation)
+                print(sum(score_history[-10:]) / len(score_history[-10:]))
+            env = new_game(ai)
             continue
         
         # draw screen
