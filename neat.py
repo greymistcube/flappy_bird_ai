@@ -4,15 +4,36 @@ import copy
 
 class Population:
     pop_size = 100
-    top_survival = 20
-    mutate = 40
-    breed = 40
+    num_survive = 20
+    num_mutate = 40
+    num_breed = 40
 
-    def __init__(self):
+    def __init__(self, num_inputs, num_outputs):
         self.generation = 1
+        self.genomes = []
+        for _ in range(self.pop_size):
+            self.genomes.append(Genome(num_inputs, num_outputs))
         return
     
     def evolve(self):
+        self.genomes.sort(key=lambda x: x.score, reverse=True)
+        self.genomes = self.genomes[:self.num_survive]
+        
+        # reset scores for survived genomes
+        for genome in self.genomes:
+            genome.score = 0
+        
+        temp = []
+        for _ in range(self.num_mutate):
+            i = random.randint(0, self.num_survive - 1)
+            temp.append(mutate(self.genomes[i]))
+        
+        for _ in range(self.num_breed):
+            temp.append(breed(self.genomes))
+        
+        self.genomes += temp
+
+        self.generation += 1
         return
 
 class Genome:

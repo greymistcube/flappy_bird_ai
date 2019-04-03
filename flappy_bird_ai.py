@@ -21,6 +21,7 @@ class Ball:
         self.x, self.y = const.START_POSITION
         self.rect.center = (self.x, self.y)
         self.velocity = 0
+        self.score = 0
         return
     
     def move(self):
@@ -97,9 +98,6 @@ def new_game():
     for _ in range(5):
         env.add_wall()
 
-    global score
-    score = 0
-
     return env
 
 def collision(env):
@@ -168,7 +166,7 @@ if __name__ == "__main__":
         for wall in env.walls:
             canvas.blit(wall.image, wall.lower)
             canvas.blit(wall.image, wall.upper)
-        text = font.render("Score: " + str(score), True, const.BLACK)
+        text = font.render("Score: " + str(env.ball.score), True, const.BLACK)
         canvas.blit(text, (0, 0))
 
         zoomed_canvas = pygame.transform.scale(canvas, [x * const.ZOOM for x in canvas.get_size()])
@@ -176,5 +174,5 @@ if __name__ == "__main__":
         pygame.display.flip()
         
         # score is equal to the number of ticks since the start
-        score = score + 1
+        env.ball.score += 1
 
