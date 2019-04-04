@@ -1,11 +1,12 @@
 import sys
 import random
 import pygame
+import neat
 
 from constants import *
 from gameobjects import Ball, Wall
-import neat
 
+# the environment should be oblivious of whether ai is being used or not
 class GameEnvironment:
     def __init__(self, num_balls=1, num_walls=5):
         self.score = 0
@@ -41,7 +42,7 @@ class GameEnvironment:
         self.walls.pop(0)
         return
 
-    def update(self):
+    def cycle_update(self):
         # move game objects
         for ball in self.balls:
             ball.move()
@@ -54,10 +55,10 @@ class GameEnvironment:
             self.remove_wall()
             self.add_wall()
 
-        # kill balls if necessary
+        # kill a ball if necessary
         for ball in self.balls:
             if ball.alive and \
-                (ball.out_of_bounds() or collision(ball, self.walls)):
+                (ball.out_of_bounds() or GameCore.check_collision(ball, self.walls)):
                 # assign score to the ball before killing it off
                 ball.score = self.score
                 ball.alive = False
@@ -66,9 +67,9 @@ class GameEnvironment:
         self.score += 1
         return
 
-    def event_update(self, jumps):
+    def event_update(self, events):
         # jump event
-        for i, jump in enumerate(jumps):
+        for i, jump in enumerate(events.jumps):
             if self.balls[i].alive and jump[0]:
                 self.balls[i].jump()
         return
@@ -93,24 +94,21 @@ class GameEnvironment:
         self.surface.blit(alive_text, (0, 12))
         return self.surface
 
-def new_game(ai):
-    if ai == "neat":
-        env = GameEnvironment(num_balls=neat.Population.pop_size)
-    else:
-        env = GameEnvironment()
-    return env
+class GameCore:
+    @staticmethod
+    def check_collision(ball, walls):
+        # for the current setup, we only need to check with the first wall
+        wall = walls[0]
+        if ball.rect.right >= wall.lower.left and \
+            ball.rect.left <= wall.lower.right:
+            return ball.rect.bottom >= wall.lower.top or \
+                ball.rect.top <= wall.upper.bottom
+        else:
+            return False
 
-def collision(ball, walls):
-    # return False
-    wall = walls[0]
-
-    # for the current setup, we only need to check with the first wall
-    if ball.rect.right >= wall.lower.left and \
-        ball.rect.left <= wall.lower.right:
-        return ball.rect.bottom >= wall.lower.top or \
-            ball.rect.top <= wall.upper.bottom
-    else:
-        return False
+    @staticmethod
+    def new_game():
+        return GameEnvironment(num_balls=GameSettings.num_balls)
 
 def get_inputs(env):
     inputs = []
@@ -142,15 +140,22 @@ def get_scores(env):
     return scores
 
 class GameSettings:
-    def __init__(self):
-        self.tickrate = TICKRATE
+    tickrate = TICKRATE
+    num_balls = 1
 
-    def change_tickrate(self, multiplier):
+    @classmethod
+    def set_num_balls(cls, num_balls):
+        cls.num_balls = num_balls
+
+    @classmethod
+    def set_tickrate(cls, multiplier):
         if multiplier is not None:
-            self.tickrate = TICKRATE * multiplier
+            cls.tickrate = TICKRATE * multiplier
 
 class EventHandler:
     def __init__(self):
+        self.multiplier = 1
+        self.jumps = [[False]]
         return
 
     def quit_event(self):
@@ -159,52 +164,52 @@ class EventHandler:
                 return True
         return False
 
-    def key_event(self):
+    def key_events(self):
         pressed_keys = pygame.key.get_pressed()
-        jump = [[pressed_keys[pygame.K_SPACE]]]
-        multiplier = None
+        self.jumps = [[pressed_keys[pygame.K_SPACE]]]
+        self.multiplier = None
         for i, pressed in enumerate(pressed_keys[pygame.K_0:pygame.K_0 + 10]):
             if pressed:
-                multiplier = i
+                self.multiplier = i
                 break
-        return jump, multiplier
+        return
 
 if __name__ == "__main__":
-    ai = ""
-    if len(sys.argv) > 1 and sys.argv[1] == "neat":
-        ai = "neat"
-        population = neat.Population(num_inputs=3, num_outputs=1)
-
     pygame.init()
-    screen = pygame.display.set_mode([x * ZOOM_LEVEL for x in RESOLUTION])
+    screen = pygame.display.set_mode((WIDTH * ZOOM_LEVEL, HEIGHT * ZOOM_LEVEL))
     clock = pygame.time.Clock()
     font = pygame.font.Font("./munro.ttf", 10)
 
     # initialize game before starting
-    settings = GameSettings()
-    env = new_game(ai)
+    ai = ""
+    if len(sys.argv) > 1 and sys.argv[1] == "neat":
+        ai = "neat"
+        population = neat.Population(num_inputs=3, num_outputs=1)
+        GameSettings.set_num_balls(num_balls=neat.Population.pop_size)
+    env = GameCore.new_game()
     events = EventHandler()
 
     # main loop
     while True:
         # set tick rate to 60 per second
-        clock.tick(settings.tickrate)
+        clock.tick(GameSettings.tickrate)
 
         # close the game and terminate process
         if events.quit_event():
             sys.exit()
 
         # update game state
-        env.update()
+        env.cycle_update()
 
         # handle key press events
-        jumps, multiplier = events.key_event()
+        events.key_events()
+
         # override inputs if ai is running
         if ai == "neat":
             inputs = get_inputs(env)
-            jumps = get_outputs(population, inputs)
-        env.event_update(jumps)
-        settings.change_tickrate(multiplier)
+            events.jumps = get_outputs(population, inputs)
+        env.event_update(events)
+        GameSettings.set_tickrate(events.multiplier)
 
         # check for game over
         if env.check_game_over():
@@ -217,7 +222,7 @@ if __name__ == "__main__":
                 # just some debug info
                 print("generation: " + str(population.generation))
                 print("final score: " + str(env.score))
-            env = new_game(ai)
+            env = GameCore.new_game()
             continue
 
         # draw screen
