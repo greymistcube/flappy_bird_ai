@@ -51,14 +51,14 @@ class GameEnvironment:
             wall.move()
 
         # remove a wall if it gets past the screen and add in a new one
-        if self.walls[0].out_of_bounds():
+        if GameCore.out_of_bounds(self.walls[0]):
             self.remove_wall()
             self.add_wall()
 
         # kill a ball if necessary
         for ball in self.balls:
             if ball.alive and \
-                (ball.out_of_bounds() or GameCore.check_collision(ball, self.walls)):
+                (GameCore.out_of_bounds(ball) or GameCore.collision(ball, self.walls)):
                 # assign score to the ball before killing it off
                 ball.score = self.score
                 ball.alive = False
@@ -76,6 +76,9 @@ class GameEnvironment:
 
     def check_game_over(self):
         return self.num_alive == 0
+
+    def get_scores(self):
+        return [ball.score for ball in self.balls]
 
     def draw(self):
         # render game objects
@@ -95,8 +98,20 @@ class GameEnvironment:
         return self.surface
 
 class GameCore:
+    def __init__(self):
+        return
+
     @staticmethod
-    def check_collision(ball, walls):
+    def out_of_bounds(game_object):
+        if isinstance(game_object, Ball):
+            return (game_object.rect.top < 0) or (game_object.rect.bottom > HEIGHT)
+        elif isinstance(game_object, Wall):
+            return game_object.lower.right < 0
+        else:
+            return False
+
+    @staticmethod
+    def collision(ball, walls):
         # for the current setup, we only need to check with the first wall
         wall = walls[0]
         if ball.rect.right >= wall.lower.left and \
@@ -109,35 +124,6 @@ class GameCore:
     @staticmethod
     def new_game():
         return GameEnvironment(num_balls=GameSettings.num_balls)
-
-def get_inputs(env):
-    inputs = []
-    for ball in env.balls:
-        # skip dead balls
-        if ball.alive:
-            # get the next wall
-            if env.walls[0].lower.right > ball.rect.left:
-                next_wall = env.walls[0]
-            else:
-                next_wall = env.walls[1]
-            # append normalized input
-            inputs.append([
-                ball.y / HEIGHT,
-                ball.velocity / 10,
-                next_wall.y / HEIGHT
-            ])
-        else:
-            inputs.append([0, 0, 0])
-    return inputs
-
-def get_outputs(population, inputs):
-    return population.predicts(inputs)
-
-def get_scores(env):
-    scores = []
-    for ball in env.balls:
-        scores.append(ball.score)
-    return scores
 
 class GameSettings:
     tickrate = TICKRATE
@@ -174,25 +160,66 @@ class EventHandler:
                 break
         return
 
+# game specific neat interface
+class NeatInterface:
+    def __init__(self, num_inputs, num_outputs):
+        self.population = neat.Population(
+            num_inputs=num_inputs,
+            num_outputs=num_outputs
+        )
+        self.num_inputs = num_inputs
+        self.num_outputs = num_outputs
+        return
+
+    # logic is bit complicated here
+    # pylint gets bit screwy due to nested lambdas with list comprehension
+    def get_inputs(self, env):
+        to_input = lambda ball, wall: [
+            ball.velocity / 10,
+            ball.y / HEIGHT,
+            wall.y / HEIGHT
+        ] if ball.alive else [0] * self.num_inputs
+
+        next_wall = lambda ball, walls: walls[
+            (walls[0].lower.right < ball.rect.left) * 1
+        ]
+
+        return [
+            to_input(ball, next_wall(ball, env.walls)) for ball in env.balls
+        ]
+
+    def get_outputs(self, inputs):
+        return self.population.predicts(inputs)
+
+    def score_population(self, scores):
+        self.population.score_genomes(scores)
+
+    def evolve_population(self):
+        self.population.evolve()
+
 if __name__ == "__main__":
     pygame.init()
     screen = pygame.display.set_mode((WIDTH * ZOOM_LEVEL, HEIGHT * ZOOM_LEVEL))
     clock = pygame.time.Clock()
     font = pygame.font.Font("./munro.ttf", 10)
 
+    # aliasing static classes
+    settings = GameSettings
+    core = GameCore
+
     # initialize game before starting
     ai = ""
     if len(sys.argv) > 1 and sys.argv[1] == "neat":
         ai = "neat"
-        population = neat.Population(num_inputs=3, num_outputs=1)
-        GameSettings.set_num_balls(num_balls=neat.Population.pop_size)
-    env = GameCore.new_game()
+        interface = NeatInterface(num_inputs=3, num_outputs=1)
+        settings.set_num_balls(num_balls=neat.Population.pop_size)
+    env = core.new_game()
     events = EventHandler()
 
     # main loop
     while True:
         # set tick rate to 60 per second
-        clock.tick(GameSettings.tickrate)
+        clock.tick(settings.tickrate)
 
         # close the game and terminate process
         if events.quit_event():
@@ -206,21 +233,21 @@ if __name__ == "__main__":
 
         # override inputs if ai is running
         if ai == "neat":
-            inputs = get_inputs(env)
-            events.jumps = get_outputs(population, inputs)
+            inputs = interface.get_inputs(env)
+            events.jumps = interface.get_outputs(inputs)
         env.event_update(events)
-        GameSettings.set_tickrate(events.multiplier)
+        settings.set_tickrate(events.multiplier)
 
         # check for game over
         if env.check_game_over():
             if ai == "neat":
                 # create next generation for the population
-                scores = get_scores(env)
-                population.score_genomes(scores)
-                population.evolve()
+                scores = env.get_scores()
+                interface.score_population(scores)
+                interface.evolve_population()
 
                 # just some debug info
-                print("generation: " + str(population.generation))
+                print("generation: " + str(interface.population.generation))
                 print("final score: " + str(env.score))
             env = GameCore.new_game()
             continue

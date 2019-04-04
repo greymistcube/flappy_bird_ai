@@ -32,9 +32,6 @@ class Ball:
     def jump(self):
         self.velocity = JUMP_VELOCITY
 
-    def out_of_bounds(self):
-        return (self.rect.top < 0) or (self.rect.bottom > HEIGHT)
-
     def get_image(self):
         if self.velocity < 0:
             return self.image_jumping
@@ -61,6 +58,3 @@ class Wall:
         self.upper = self.upper.move((self.speed, 0))
         self.x = self.x + self.speed
         return
-
-    def out_of_bounds(self):
-        return self.lower.right < 0
