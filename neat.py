@@ -110,7 +110,7 @@ class Genome:
     def __init__(self, num_inputs, num_outputs, random_weights=True):
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
-        self.num_hiddens = 10
+        self.num_hiddens = 3
         self.score = 0
         self.age = 0
         

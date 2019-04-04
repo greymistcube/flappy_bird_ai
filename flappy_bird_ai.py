@@ -10,7 +10,7 @@ def load_image(file):
     return image
 
 class Ball:
-    image = load_image("blue_ball.png")
+    image = load_image("./img/blue_ball.png")
 
     def __init__(self):
         self.rect = self.image.get_rect()
@@ -40,7 +40,7 @@ class Ball:
         return (self.rect.top < 0) or (self.rect.bottom > const.HEIGHT)
 
 class Wall:
-    image = load_image("brick_wall.png")
+    image = load_image("./img/brick_wall.png")
 
     # here, (x, y) correspond to the center of a wall
     def __init__(self, x, y):
@@ -98,7 +98,7 @@ class GameEnvironment:
         self.walls.pop(0)
         return
     
-    def update(self, jumps):
+    def update(self):
         # move game objects
         for ball in self.balls:
             ball.move()
@@ -111,11 +111,6 @@ class GameEnvironment:
             self.remove_wall()
             self.add_wall()
         
-        # jump
-        for i in range(len(jumps)):
-            if jumps[i][0]:
-                self.balls[i].jump()
-        
         # kill balls if necessary
         for ball in self.balls:
             if ball.alive and \
@@ -125,6 +120,13 @@ class GameEnvironment:
                 self.num_alive -= 1
 
         self.score += 1
+        return
+    
+    def event_update(self, jumps):
+        # jump event
+        for i in range(len(jumps)):
+            if self.balls[i].alive and jumps[i][0]:
+                self.balls[i].jump()
         return
     
     def check_game_over(self):
@@ -195,6 +197,36 @@ def get_scores(env):
         scores.append(ball.score)
     return scores
 
+class GameSettings:
+    def __init__(self):
+        self.zoom = const.ZOOM
+        self.size = self.width, self.height = const.SIZE
+        self.tickrate = const.FPS
+    
+    def change_tickrate(self, multiplier):
+        self.tickrate = const.FPS * multiplier
+
+class EventHandler:
+    def __init__(self):
+        return
+    
+    def quit_event(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return True
+        return False
+    
+    def jump_event(self):
+        pressed_keys = pygame.key.get_pressed()
+        return pressed_keys[pygame.K_SPACE]
+
+    def turbo_event(self):
+        pressed_keys = pygame.key.get_pressed()
+        for i in range(10):
+            if pressed_keys[pygame.K_0 + i]:
+                return i
+        return None
+                
 if __name__ == "__main__":
     score_history = []
     ai = ""
@@ -209,40 +241,44 @@ if __name__ == "__main__":
 
     # initialize game before starting
     env = new_game(ai)
+    events = EventHandler()
+    settings = GameSettings()
 
     # main loop
     while True:
         # set tick rate to 60 per second
         if ai == "neat":
-            clock.tick(0)
-            pass
+            clock.tick(settings.tickrate)
         else:
-            clock.tick(60)
+            clock.tick(settings.tickrate)
 
         # close the game and terminate process
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-        
+        if events.quit_event():
+            sys.exit()
+                
         # update game state
+        env.update()
+
+        # handle inputs
         if ai == "neat":
             inputs = get_inputs(env)
-            outputs = get_outputs(population, inputs)
-            env.update(outputs)
+            jumps = get_outputs(population, inputs)
         else:
-            pressed_keys = pygame.key.get_pressed()
-            if pressed_keys[pygame.K_SPACE]:
-                env.update([[True]])
-            else:
-                env.update([[False]])
+            jumps = [[events.jump_event()]]
+        env.event_update(jumps)
+
+        multiplier = events.turbo_event()
+        if multiplier is not None:
+            settings.change_tickrate(multiplier)
 
         # check for game over
         if env.check_game_over():
             if ai == "neat":
+                # create next generation for the population
                 scores = get_scores(env)
                 population.score_genomes(scores)
-                hiddens = [genome.num_hiddens for genome in population.genomes]
                 population.evolve()
+
                 # just some debug info
                 print("generation: " + str(population.generation))
                 print("final score: " + str(env.score))
