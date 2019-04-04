@@ -2,7 +2,7 @@ import sys
 import random
 import pygame
 
-import constants as const
+from constants import *
 import neat
 
 def load_image(file):
@@ -16,7 +16,7 @@ class Ball:
 
     def __init__(self):
         self.rect = self.image.get_rect()
-        self.x, self.y = const.START_POSITION
+        self.x, self.y = START_POSITION
         self.rect.center = (self.x, self.y)
         self.velocity = 0.0
         self.score = 0
@@ -30,14 +30,14 @@ class Ball:
         return
     
     def accelerate(self):
-        self.velocity = self.velocity + const.GRAVITY
+        self.velocity = self.velocity + GRAVITY
         return
     
     def jump(self):
-        self.velocity = const.JUMP_VELOCITY
+        self.velocity = JUMP_VELOCITY
     
     def out_of_bounds(self):
-        return (self.rect.top < 0) or (self.rect.bottom > const.HEIGHT)
+        return (self.rect.top < 0) or (self.rect.bottom > HEIGHT)
     
     def get_image(self):
         if self.velocity < 0:
@@ -53,12 +53,12 @@ class Wall:
     def __init__(self, x, y):
         self.lower = self.image.get_rect()
         self.upper = self.image.get_rect()
-        y_offset = (const.HOLE_SIZE + self.image.get_height()) // 2
+        y_offset = (HOLE_SIZE + self.image.get_height()) // 2
         self.lower.center = (x, y + y_offset)
         self.upper.center = (x, y - y_offset)
         self.x = x
         self.y = y
-        self.speed = const.MOVE_SPEED
+        self.speed = MOVE_SPEED
         return
     
     def move(self):
@@ -76,7 +76,7 @@ class GameEnvironment:
         self.num_alive = num_balls
         self.balls = []
         self.walls = []
-        self.surface = pygame.Surface(const.SIZE)
+        self.surface = pygame.Surface(RESOLUTION)
         for _ in range(num_balls):
             self.add_ball()
         for _ in range(num_walls):
@@ -91,12 +91,12 @@ class GameEnvironment:
         # if no wall exists, add one at the right end of the screen
         # otherwise, add one some distance away from the right-most one
         if not self.walls:
-            x = const.WIDTH
+            x = WIDTH
         else:
-            x = self.walls[-1].x + const.WALL_DISTANCE
+            x = self.walls[-1].x + WALL_DISTANCE
 
-        variance = random.randint(-const.Y_VARIANCE, const.Y_VARIANCE)
-        y = (const.HEIGHT // 2) + variance
+        variance = random.randint(-HOLE_Y_VARIANCE, HOLE_Y_VARIANCE)
+        y = (HEIGHT // 2) + variance
 
         self.walls.append(Wall(x, y))
         return
@@ -142,7 +142,7 @@ class GameEnvironment:
     
     def draw(self):
         # render game objects
-        self.surface.fill(const.WHITE)
+        self.surface.fill(WHITE)
         for ball in self.balls:
             if ball.alive:
                 self.surface.blit(ball.get_image(), ball.rect)
@@ -151,8 +151,8 @@ class GameEnvironment:
             self.surface.blit(wall.image, wall.upper)
 
         # render info text
-        score_text = font.render(" Score: " + str(self.score), False, const.BLACK)
-        alive_text = font.render(" Alive: " + str(self.num_alive), False, const.BLACK)
+        score_text = font.render(" Score: " + str(self.score), False, BLACK)
+        alive_text = font.render(" Alive: " + str(self.num_alive), False, BLACK)
         self.surface.blit(score_text, (0, 0))
         self.surface.blit(alive_text, (0, 12))
         return self.surface
@@ -188,9 +188,9 @@ def get_inputs(env):
                 next_wall = env.walls[1]
             # append normalized input
             inputs.append([
-                ball.y / const.HEIGHT,
+                ball.y / HEIGHT,
                 ball.velocity / 10,
-                next_wall.y / const.HEIGHT
+                next_wall.y / HEIGHT
             ])
         else:
             inputs.append([0, 0, 0])
@@ -206,13 +206,12 @@ def get_scores(env):
     return scores
 
 class GameSettings:
-    def __init__(self):
-        self.zoom = const.ZOOM
-        self.size = self.width, self.height = const.SIZE
-        self.tickrate = const.FPS
+    def __init__(self, difficulty):
+        self.tickrate = TICKRATE
     
     def change_tickrate(self, multiplier):
-        self.tickrate = const.FPS * multiplier
+        if multiplier is not None:
+            self.tickrate = TICKRATE * multiplier
 
 class EventHandler:
     def __init__(self):
@@ -234,30 +233,38 @@ class EventHandler:
             if pressed_keys[pygame.K_0 + i]:
                 return i
         return None
-                
+    
+    def key_event(self):
+        pressed_keys = pygame.key.get_pressed()
+        jump = [[pressed_keys[pygame.K_SPACE]]]
+        multiplier = None
+        for i in range(10):
+            if pressed_keys[pygame.K_0 + i]:
+                multiplier = i
+                break
+        return jump, multiplier
+
 if __name__ == "__main__":
     ai = ""
     if len(sys.argv) > 1 and sys.argv[1] == "neat":
         ai = "neat"
         population = neat.Population(num_inputs=3, num_outputs=1)
     
+    settings = GameSettings("hard")
+    
     pygame.init()
-    screen = pygame.display.set_mode([x * const.ZOOM for x in const.SIZE])
+    screen = pygame.display.set_mode([x * ZOOM_LEVEL for x in RESOLUTION])
     clock = pygame.time.Clock()
     font = pygame.font.Font("./munro.ttf", 10)
 
     # initialize game before starting
     env = new_game(ai)
     events = EventHandler()
-    settings = GameSettings()
 
     # main loop
     while True:
         # set tick rate to 60 per second
-        if ai == "neat":
-            clock.tick(settings.tickrate)
-        else:
-            clock.tick(settings.tickrate)
+        clock.tick(settings.tickrate)
 
         # close the game and terminate process
         if events.quit_event():
@@ -266,17 +273,14 @@ if __name__ == "__main__":
         # update game state
         env.update()
 
-        # handle inputs
+        # handle key press events
+        jumps, multiplier = events.key_event()
+        # override inputs if ai is running
         if ai == "neat":
             inputs = get_inputs(env)
             jumps = get_outputs(population, inputs)
-        else:
-            jumps = [[events.jump_event()]]
         env.event_update(jumps)
-
-        multiplier = events.turbo_event()
-        if multiplier is not None:
-            settings.change_tickrate(multiplier)
+        settings.change_tickrate(multiplier)
 
         # check for game over
         if env.check_game_over():
@@ -294,7 +298,7 @@ if __name__ == "__main__":
         
         # draw screen
         surface = env.draw()
-        surface = pygame.transform.scale(surface, [x * const.ZOOM for x in surface.get_size()])
+        surface = pygame.transform.scale(surface, screen.get_size())
         screen.blit(surface, surface.get_rect())
         pygame.display.flip()
         # todo: create additional info layer if ai is enabled
