@@ -1,6 +1,6 @@
-import numpy as np
 import random
 import copy
+import numpy as np
 
 class Population:
     pop_size = 200
@@ -19,7 +19,7 @@ class Population:
         for _ in range(self.pop_size):
             self.genomes.append(Genome(self.num_inputs, self.num_outputs))
         return
-    
+
     """
     def evolve(self):
         self.genomes.sort(key=lambda x: x.score, reverse=True)
@@ -87,7 +87,7 @@ class Population:
         for genome in prev_gen[:self.num_survive]:
             self.genomes.append(copy.deepcopy(genome))
             self.genomes[-1].score = 0
-        
+
         self.generation += 1
         return
 
@@ -98,7 +98,7 @@ class Population:
             inputs = all_inputs[i]
             predicts.append(genome.predict(inputs))
         return predicts
-    
+
     def score_genomes(self, scores):
         for i in range(len(self.genomes)):
             self.genomes[i].score = scores[i]
@@ -110,10 +110,9 @@ class Genome:
     def __init__(self, num_inputs, num_outputs, random_weights=True):
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
-        self.num_hiddens = 3
+        self.num_hiddens = 5
         self.score = 0
         self.age = 0
-        
         self.bias = 1
 
         if random_weights:
@@ -132,12 +131,12 @@ class Genome:
         prob = 0.5
         mask_one = np.random.choice(
             [0, 1],
-            size = self.w1.shape,
+            size=self.w1.shape,
             p=[1 - prob, prob]
         )
         mask_two = np.random.choice(
             [0, 1],
-            size = self.w2.shape,
+            size=self.w2.shape,
             p=[1 - prob, prob]
         )
         var_one = (np.random.random(self.w1.shape) - 0.5)
@@ -146,7 +145,7 @@ class Genome:
         self.w1 = self.w1 + (var_one * mask_one)
         self.w2 = self.w2 + (var_two * mask_two)
         return
-    
+
     def add_hidden_node(self):
         self.w1 = np.append(
             self.w1,
@@ -159,8 +158,8 @@ class Genome:
             axis=1
         )
         self.num_hiddens = self.num_hiddens + 1
-        return 
-    
+        return
+
     def predict(self, inputs):
         # append bias to inputs
         inputs = np.append(self.bias, inputs)
@@ -180,7 +179,7 @@ class Genome:
         # return formatted output
         outputs = np.ndarray.flatten(outputs > 0)
         return np.ndarray.tolist(outputs)
-    
+
     def set_score(self, score):
         self.score = score
         return
@@ -206,22 +205,22 @@ def breed(genomes):
 # should be the same.
 def breed_weights(w1, w2):
     prob = 0.5
-    
+
     min_shape = min(w1.shape, w2.shape)
     max_shape = max(w1.shape, w2.shape)
-    
+
     w1_pad = np.zeros(max_shape)
     w2_pad = np.zeros(max_shape)
     w1_pad[:w1.shape[0], :w1.shape[1]] = w1
     w2_pad[:w2.shape[0], :w2.shape[1]] = w2
     w = np.zeros(max_shape)
-    
+
     mask = np.random.choice([0, 1], size=min_shape, p=(1 - prob, prob))
-    
+
     min_shape_slice = np.index_exp[:min_shape[0], :min_shape[1]]
     excess_row_slice = np.index_exp[min_shape[0]:, :]
     excess_column_slice = np.index_exp[:, min_shape[1]:]
-    
+
     w[min_shape_slice] = w1_pad[min_shape_slice] * mask + w2_pad[min_shape_slice] * (1 - mask)
     w[excess_row_slice] = w1_pad[excess_row_slice] + w2_pad[excess_row_slice]
     w[excess_column_slice] = w1_pad[excess_column_slice] + w2_pad[excess_column_slice]
@@ -248,5 +247,5 @@ def mutate(genome):
 
     mutated.w1 = mutated.w1 + (var1 * mask1)
     mutated.w2 = mutated.w2 + (var2 * mask2)
-    
+
     return mutated

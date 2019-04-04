@@ -3,72 +3,8 @@ import random
 import pygame
 
 from constants import *
+from gameobjects import Ball, Wall
 import neat
-
-def load_image(file):
-    image = pygame.image.load(file)
-    return image
-
-class Ball:
-    image = load_image("./img/blue_ball.png")
-    image_jumping = load_image("./img/blue_ball_jumping.png")
-    image_falling = load_image("./img/blue_ball_falling.png")
-
-    def __init__(self):
-        self.rect = self.image.get_rect()
-        self.x, self.y = START_POSITION
-        self.rect.center = (self.x, self.y)
-        self.velocity = 0.0
-        self.score = 0
-        self.alive = True
-        return
-    
-    def move(self):
-        # huge pain caused by using move instead of center
-        self.y = self.y + self.velocity
-        self.rect.center = (self.x, self.y)
-        return
-    
-    def accelerate(self):
-        self.velocity = self.velocity + GRAVITY
-        return
-    
-    def jump(self):
-        self.velocity = JUMP_VELOCITY
-    
-    def out_of_bounds(self):
-        return (self.rect.top < 0) or (self.rect.bottom > HEIGHT)
-    
-    def get_image(self):
-        if self.velocity < 0:
-            return self.image_jumping
-        else:
-            return self.image_falling
-
-
-class Wall:
-    image = load_image("./img/brick_wall.png")
-
-    # here, (x, y) correspond to the center of a wall
-    def __init__(self, x, y):
-        self.lower = self.image.get_rect()
-        self.upper = self.image.get_rect()
-        y_offset = (HOLE_SIZE + self.image.get_height()) // 2
-        self.lower.center = (x, y + y_offset)
-        self.upper.center = (x, y - y_offset)
-        self.x = x
-        self.y = y
-        self.speed = MOVE_SPEED
-        return
-    
-    def move(self):
-        self.lower = self.lower.move((self.speed, 0))
-        self.upper = self.upper.move((self.speed, 0))
-        self.x = self.x + self.speed
-        return
-    
-    def out_of_bounds(self):
-        return self.lower.right < 0
 
 class GameEnvironment:
     def __init__(self, num_balls=1, num_walls=5):
@@ -82,11 +18,11 @@ class GameEnvironment:
         for _ in range(num_walls):
             self.add_wall()
         return
-    
+
     def add_ball(self):
         self.balls.append(Ball())
         return
-    
+
     def add_wall(self):
         # if no wall exists, add one at the right end of the screen
         # otherwise, add one some distance away from the right-most one
@@ -100,11 +36,11 @@ class GameEnvironment:
 
         self.walls.append(Wall(x, y))
         return
-    
+
     def remove_wall(self):
         self.walls.pop(0)
         return
-    
+
     def update(self):
         # move game objects
         for ball in self.balls:
@@ -117,7 +53,7 @@ class GameEnvironment:
         if self.walls[0].out_of_bounds():
             self.remove_wall()
             self.add_wall()
-        
+
         # kill balls if necessary
         for ball in self.balls:
             if ball.alive and \
@@ -129,17 +65,17 @@ class GameEnvironment:
 
         self.score += 1
         return
-    
+
     def event_update(self, jumps):
         # jump event
-        for i in range(len(jumps)):
-            if self.balls[i].alive and jumps[i][0]:
+        for i, jump in enumerate(jumps):
+            if self.balls[i].alive and jump[0]:
                 self.balls[i].jump()
         return
-    
+
     def check_game_over(self):
         return self.num_alive == 0
-    
+
     def draw(self):
         # render game objects
         self.surface.fill(WHITE)
@@ -206,9 +142,9 @@ def get_scores(env):
     return scores
 
 class GameSettings:
-    def __init__(self, difficulty):
+    def __init__(self):
         self.tickrate = TICKRATE
-    
+
     def change_tickrate(self, multiplier):
         if multiplier is not None:
             self.tickrate = TICKRATE * multiplier
@@ -216,30 +152,19 @@ class GameSettings:
 class EventHandler:
     def __init__(self):
         return
-    
+
     def quit_event(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
         return False
-    
-    def jump_event(self):
-        pressed_keys = pygame.key.get_pressed()
-        return pressed_keys[pygame.K_SPACE]
 
-    def turbo_event(self):
-        pressed_keys = pygame.key.get_pressed()
-        for i in range(10):
-            if pressed_keys[pygame.K_0 + i]:
-                return i
-        return None
-    
     def key_event(self):
         pressed_keys = pygame.key.get_pressed()
         jump = [[pressed_keys[pygame.K_SPACE]]]
         multiplier = None
-        for i in range(10):
-            if pressed_keys[pygame.K_0 + i]:
+        for i, pressed in enumerate(pressed_keys[pygame.K_0:pygame.K_0 + 10]):
+            if pressed:
                 multiplier = i
                 break
         return jump, multiplier
@@ -249,15 +174,14 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "neat":
         ai = "neat"
         population = neat.Population(num_inputs=3, num_outputs=1)
-    
-    settings = GameSettings("hard")
-    
+
     pygame.init()
     screen = pygame.display.set_mode([x * ZOOM_LEVEL for x in RESOLUTION])
     clock = pygame.time.Clock()
     font = pygame.font.Font("./munro.ttf", 10)
 
     # initialize game before starting
+    settings = GameSettings()
     env = new_game(ai)
     events = EventHandler()
 
@@ -269,7 +193,7 @@ if __name__ == "__main__":
         # close the game and terminate process
         if events.quit_event():
             sys.exit()
-                
+
         # update game state
         env.update()
 
@@ -295,11 +219,10 @@ if __name__ == "__main__":
                 print("final score: " + str(env.score))
             env = new_game(ai)
             continue
-        
+
         # draw screen
         surface = env.draw()
         surface = pygame.transform.scale(surface, screen.get_size())
         screen.blit(surface, surface.get_rect())
         pygame.display.flip()
         # todo: create additional info layer if ai is enabled
-
