@@ -65,6 +65,8 @@ class Wall:
 
 class GameEnvironment:
     def __init__(self, num_balls=1, num_walls=5):
+        self.score = 0
+        self.num_alive = num_balls
         self.balls = []
         self.walls = []
         self.surface = pygame.Surface(const.SIZE)
@@ -117,24 +119,20 @@ class GameEnvironment:
         
         # kill balls if necessary
         for ball in self.balls:
-            if ball.out_of_bounds() or collision(ball, self.walls):
+            if ball.alive and \
+                (ball.out_of_bounds() or collision(ball, self.walls)):
                 ball.alive = False
+                ball.score = self.score
+                self.num_alive -= 1
 
-        # update scores for balls still alive
-        for ball in self.balls:
-            if ball.alive:
-                ball.score += 1
+        self.score += 1
         return
     
     def check_game_over(self):
-        # if any ball is alive, it is not game over yet
-        # if all balls are dead, it is game over
-        for ball in self.balls:
-            if ball.alive:
-                return False
-        return True
+        return self.num_alive == 0
     
     def draw(self):
+        # render game objects
         self.surface.fill(const.WHITE)
         for ball in self.balls:
             if ball.alive:
@@ -142,20 +140,12 @@ class GameEnvironment:
         for wall in self.walls:
             self.surface.blit(wall.image, wall.lower)
             self.surface.blit(wall.image, wall.upper)
-        num_alive = sum([ball.alive for ball in self.balls])
-        alive_text = font.render("Alive: " + str(num_alive), True, const.BLACK)
-        wall0_text = font.render(
-            "Wall0: " + str(self.walls[0].y) + ', ' + str(self.walls[0].x),
-            True, const.BLACK
-            )
-        wall1_text = font.render(
-            "Wall1: " + str(self.walls[1].y) + ', ' + str(self.walls[1].x),
-            True, const.BLACK
-            )
-        self.surface.blit(alive_text, (0, 0))
-        # debug info on game screen
-        # self.surface.blit(wall0_text, (0, 16))
-        # self.surface.blit(wall1_text, (0, 32))
+
+        # render info text
+        score_text = font.render(" Score: " + str(self.score), False, const.BLACK)
+        alive_text = font.render(" Alive: " + str(self.num_alive), False, const.BLACK)
+        self.surface.blit(score_text, (0, 0))
+        self.surface.blit(alive_text, (0, 12))
         return self.surface
 
 def new_game(ai):
@@ -163,7 +153,6 @@ def new_game(ai):
         env = GameEnvironment(num_balls=neat.Population.pop_size)
     else:
         env = GameEnvironment()
-
     return env
 
 def collision(ball, walls):
@@ -217,7 +206,9 @@ if __name__ == "__main__":
     pygame.init()
     screen = pygame.display.set_mode([x * const.ZOOM for x in const.SIZE])
     clock = pygame.time.Clock()
-    font = pygame.font.SysFont("FreeMono", 16)
+    font = pygame.font.Font("./munro.ttf", 10)
+    print(font.get_linesize())
+    # print(pygame.font.get_fonts())
 
     # initialize game before starting
     env = new_game(ai)
