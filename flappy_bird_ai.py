@@ -84,7 +84,6 @@ class GameEnvironment:
         # if no wall exists, add one at the right end of the screen
         # otherwise, add one some distance away from the right-most one
         if not self.walls:
-            print('reset walls')
             x = const.WIDTH
         else:
             x = self.walls[-1].x + const.WALL_DISTANCE
@@ -207,8 +206,6 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode([x * const.ZOOM for x in const.SIZE])
     clock = pygame.time.Clock()
     font = pygame.font.Font("./munro.ttf", 10)
-    print(font.get_linesize())
-    # print(pygame.font.get_fonts())
 
     # initialize game before starting
     env = new_game(ai)
@@ -243,15 +240,12 @@ if __name__ == "__main__":
         if env.check_game_over():
             if ai == "neat":
                 scores = get_scores(env)
-                temp = [score for score in scores]
-                temp.sort()
-                score_history.append(sum(temp[-10:]) / len(temp[-10:]))
                 population.score_genomes(scores)
                 hiddens = [genome.num_hiddens for genome in population.genomes]
                 population.evolve()
                 # just some debug info
-                print(population.generation)
-                print(sum(score_history[-10:]) / len(score_history[-10:]))
+                print("generation: " + str(population.generation))
+                print("final score: " + str(env.score))
             env = new_game(ai)
             continue
         

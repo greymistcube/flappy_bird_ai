@@ -89,7 +89,6 @@ class Population:
             self.genomes[-1].score = 0
         
         self.generation += 1
-        print(len(self.genomes))
         return
 
     def predicts(self, all_inputs):
