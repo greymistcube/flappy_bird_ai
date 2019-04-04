@@ -11,12 +11,12 @@ def load_image(file):
 
 class Ball:
     image = load_image("./img/blue_ball.png")
+    image_jumping = load_image("./img/blue_ball_jumping.png")
+    image_falling = load_image("./img/blue_ball_falling.png")
 
     def __init__(self):
         self.rect = self.image.get_rect()
         self.x, self.y = const.START_POSITION
-        # self.x = const.START_POSITION[0]
-        # self.y = random.randint(80, const.HEIGHT - 80)
         self.rect.center = (self.x, self.y)
         self.velocity = 0.0
         self.score = 0
@@ -24,7 +24,7 @@ class Ball:
         return
     
     def move(self):
-        # huge pain by using move instead of center
+        # huge pain caused by using move instead of center
         self.y = self.y + self.velocity
         self.rect.center = (self.x, self.y)
         return
@@ -38,6 +38,13 @@ class Ball:
     
     def out_of_bounds(self):
         return (self.rect.top < 0) or (self.rect.bottom > const.HEIGHT)
+    
+    def get_image(self):
+        if self.velocity < 0:
+            return self.image_jumping
+        else:
+            return self.image_falling
+
 
 class Wall:
     image = load_image("./img/brick_wall.png")
@@ -115,8 +122,9 @@ class GameEnvironment:
         for ball in self.balls:
             if ball.alive and \
                 (ball.out_of_bounds() or collision(ball, self.walls)):
-                ball.alive = False
+                # assign score to the ball before killing it off
                 ball.score = self.score
+                ball.alive = False
                 self.num_alive -= 1
 
         self.score += 1
@@ -137,7 +145,7 @@ class GameEnvironment:
         self.surface.fill(const.WHITE)
         for ball in self.balls:
             if ball.alive:
-                self.surface.blit(ball.image, ball.rect)
+                self.surface.blit(ball.get_image(), ball.rect)
         for wall in self.walls:
             self.surface.blit(wall.image, wall.lower)
             self.surface.blit(wall.image, wall.upper)
@@ -228,7 +236,6 @@ class EventHandler:
         return None
                 
 if __name__ == "__main__":
-    score_history = []
     ai = ""
     if len(sys.argv) > 1 and sys.argv[1] == "neat":
         ai = "neat"
@@ -290,5 +297,5 @@ if __name__ == "__main__":
         surface = pygame.transform.scale(surface, [x * const.ZOOM for x in surface.get_size()])
         screen.blit(surface, surface.get_rect())
         pygame.display.flip()
-        
+        # todo: create additional info layer if ai is enabled
 
