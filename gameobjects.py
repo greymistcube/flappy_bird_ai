@@ -84,3 +84,14 @@ class Wall:
 
     def get_surface(self):
         return self._surface
+
+class Buildings:
+    _image = load_image("./img/buildings.png")
+
+    def __init__(self):
+        self.rect = self._image.get_rect()
+        return
+    
+    def get_surface(self):
+        return self._image
+    

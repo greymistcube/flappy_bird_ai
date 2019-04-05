@@ -16,7 +16,9 @@ MOVE_SPEED = -2
 
 # other settings
 TICKRATE = 60
+SCROLL_SPEED = -1
 
 # predefined color tuples
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+SKY_BLUE = (127, 191, 255)

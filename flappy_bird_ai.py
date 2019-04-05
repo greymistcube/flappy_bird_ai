@@ -1,10 +1,10 @@
 import sys
 import random
 import pygame
-import neat
 
+import neat
 from constants import *
-from gameobjects import Ball, Wall
+from gameobjects import Ball, Wall, Buildings
 
 # environment should be oblivious of whether ai is being used or not
 class GameEnvironment:
@@ -17,6 +17,8 @@ class GameEnvironment:
         self.balls = []
         self.walls = []
         self.surface = pygame.Surface(RESOLUTION)
+        self.background_scroll = 0
+
         for _ in range(num_balls):
             self.add_ball(colors.pop(0))
         for _ in range(num_walls):
@@ -89,8 +91,22 @@ class GameEnvironment:
         return font.render(text, False, BLACK)
 
     def draw(self):
+        self.surface.fill(SKY_BLUE)
+
+        # render background first
+        tile = Buildings()
+        tile_size = tile_width, tile_height = tile.get_surface().get_size()
+        surface_size = self.surface.get_size()
+        for i in range((WIDTH // tile_width) + 2):
+            self.surface.blit(tile.get_surface(), (
+                i * tile_width + self.background_scroll,
+                HEIGHT - tile_height
+            ))
+        self.background_scroll -= 1
+        if self.background_scroll < -tile_width:
+            self.background_scroll += tile_width
+
         # render game objects
-        self.surface.fill(WHITE)
         for ball in self.balls:
             if ball.alive:
                 self.surface.blit(ball.get_surface(), ball.rect)
