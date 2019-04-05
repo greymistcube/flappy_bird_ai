@@ -6,7 +6,7 @@ import neat
 from constants import *
 from gameobjects import Ball, Wall
 
-# the environment should be oblivious of whether ai is being used or not
+# environment should be oblivious of whether ai is being used or not
 class GameEnvironment:
     game_number = 0
     def __init__(self, num_balls=1, num_walls=5, colors=["blue"]):
@@ -35,8 +35,7 @@ class GameEnvironment:
         else:
             x = self.walls[-1].x + WALL_DISTANCE
 
-        variance = random.randint(-HOLE_Y_VARIANCE, HOLE_Y_VARIANCE)
-        y = (HEIGHT // 2) + variance
+        y = (HEIGHT // 2) + random.randint(-HOLE_Y_VARIANCE, HOLE_Y_VARIANCE)
 
         self.walls.append(Wall(x, y))
         return
@@ -108,6 +107,19 @@ class GameEnvironment:
         self.surface.blit(alive_text, (0, 24))
         return self.surface
 
+class GameSettings:
+    _tickrate = TICKRATE
+    _num_balls = 1
+
+    @classmethod
+    def set_num_balls(cls, num_balls):
+        cls._num_balls = num_balls
+
+    @classmethod
+    def set_tickrate(cls, multiplier):
+        if multiplier is not None:
+            cls._tickrate = TICKRATE * multiplier
+
 class GameCore:
     @staticmethod
     def out_of_bounds(game_object):
@@ -133,19 +145,6 @@ class GameCore:
     def new_game(colors):
         return GameEnvironment(num_balls=GameSettings.num_balls, colors=colors)
 
-class GameSettings:
-    tickrate = TICKRATE
-    num_balls = 1
-
-    @classmethod
-    def set_num_balls(cls, num_balls):
-        cls.num_balls = num_balls
-
-    @classmethod
-    def set_tickrate(cls, multiplier):
-        if multiplier is not None:
-            cls.tickrate = TICKRATE * multiplier
-
 class EventHandler:
     def __init__(self):
         self.multiplier = 1
@@ -170,13 +169,12 @@ class EventHandler:
 
 # game specific neat interface
 class NeatInterface:
-    def __init__(self, num_inputs=6, num_outputs=1):
-        self.population = neat.Population(
-            num_inputs=num_inputs,
-            num_outputs=num_outputs
-        )
-        self.num_inputs = num_inputs
-        self.num_outputs = num_outputs
+    # game specific variables
+    _num_inputs = 6
+    _num_outputs = 1
+
+    def __init__(self):
+        self.population = neat.Population(self._num_inputs, self._num_outputs)
         return
 
     # logic is bit complicated here
@@ -185,7 +183,7 @@ class NeatInterface:
         return [
             self.to_input(ball, env.walls) for ball in env.balls
         ]
-    
+
     def to_input(self, ball, walls):
         if ball.alive:
             return [
@@ -197,7 +195,7 @@ class NeatInterface:
                 walls[1].y / HEIGHT
             ]
         else:
-            return [0] * self.num_inputs
+            return [0] * self._num_inputs
 
     def get_outputs(self, inputs):
         return self.population.predicts(inputs)
@@ -207,7 +205,7 @@ class NeatInterface:
 
     def evolve_population(self):
         self.population.evolve()
-    
+
     def get_colors(self):
         colors = []
         for genome in self.population.genomes:

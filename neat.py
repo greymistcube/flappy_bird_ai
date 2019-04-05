@@ -2,24 +2,27 @@ import random
 import copy
 import numpy as np
 
+# list of constants for convenience
+MUTATE_RATE = 0.1
+MUTATE_STRENGTH = 0.05
+DIVERGE_STRENGTH = 0.1
+
 class Population:
+    # for now pop_size should be the sum of the rest
     pop_size = 200
     num_survive = 40
     num_mutate = 80
     num_breed = 80
-    num_add_node = 0
+    num_diverge = 0
+    # new_node_rule
 
     def __init__(self, num_inputs, num_outputs):
         self.generation = 1
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
         self.evolver = Evolver
-        # parameters to tune for search optimization
-        self.evolver.set_mutation_rules(
-            mutate_rate=0.1,
-            mutate_strength=0.05,
-            new_node_strength=0.1
-        )
+
+        # creation of initial gene pool
         self.genomes = [
             Genome(self.num_inputs, self.num_outputs) for _ in range(self.pop_size)
         ]
@@ -73,19 +76,22 @@ class Population:
         )
         bred = [self.evolver.breed(get_parents()) for _ in range(self.num_breed)]
 
-        node_added = np.random.choice(
+        diverged = np.random.choice(
             self.genomes,
-            size=self.num_add_node,
+            size=self.num_diverge,
             replace=True,
             p=fitness
         )
-        node_added = [self.evolver.add_node(genome) for genome in node_added]
+        diverged = [self.evolver.add_node(genome) for genome in diverged]
 
         for genome in survived:
             genome.genome_type = "survived"
 
-        self.genomes = survived + mutated + bred + node_added
+        self.genomes = survived + mutated + bred + diverged
+
+        # this is done for purely cosmetic purpose when rendering
         random.shuffle(self.genomes)
+
         self.generation += 1
         return
 
@@ -134,21 +140,20 @@ class Genome:
         self.score = score
         return
 
+# helper class for evolution of population
 class Evolver:
-    @classmethod
-    def set_mutation_rules(cls, mutate_rate, mutate_strength, new_node_strength):
-        cls.mutate_rate = mutate_rate
-        cls.mutate_strength = mutate_strength
-        cls.new_node_strength = new_node_strength
+    _mutate_rate = MUTATE_RATE
+    _mutate_strength = MUTATE_STRENGTH
+    _diverge_strength = DIVERGE_STRENGTH
 
     # copies a genome and returns a mutated one
     @classmethod
     def mutate(cls, genome):
         mutated = copy.deepcopy(genome)
 
-        prob = cls.mutate_rate / 2
+        prob = cls._mutate_rate / 2
         get_var = lambda shape: np.random.choice(
-            [-cls.mutate_strength, 0, cls.mutate_strength],
+            [-cls._mutate_strength, 0, cls._mutate_strength],
             size=shape,
             p=[prob, 1 - 2 * prob, prob]
         )
@@ -171,24 +176,24 @@ class Evolver:
 
         child.genome_type = "bred"
         return child
-    
+
     @classmethod
     def add_node(cls, genome):
-        node_added = copy.deepcopy(genome)
-        node_added.w1 = np.append(
-            node_added.w1,
-            (np.random.random((1, genome.num_inputs + 1)) - 0.5) * cls.new_node_strength,
+        diverged = copy.deepcopy(genome)
+        diverged.w1 = np.append(
+            diverged.w1,
+            (np.random.random((1, genome.num_inputs + 1)) - 0.5) * cls._diverge_strength,
             axis=0
             )
-        node_added.w2 = np.append(
-            node_added.w2,
-            (np.random.random((genome.num_outputs, 1)) - 0.5) * cls.new_node_strength,
+        diverged.w2 = np.append(
+            diverged.w2,
+            (np.random.random((genome.num_outputs, 1)) - 0.5) * cls._diverge_strength,
             axis=1
         )
-        node_added.num_hiddens += 1
-        
-        node_added.genome_type = "node_added"
-        return node_added
+        diverged.num_hiddens += 1
+
+        diverged.genome_type = "diverged"
+        return diverged
 
 # takes two numpy arrays and produces a child by breeding
 # either the number of rows or the number of columns of two matrices
