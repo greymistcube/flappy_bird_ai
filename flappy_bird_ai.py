@@ -68,6 +68,8 @@ class GameEnvironment:
         return
 
     def event_update(self, events):
+        if len(events.jumps) != len(self.balls):
+            raise Exception("number of inputs doesn't match number of balls")
         # jump event
         for i, jump in enumerate(events.jumps):
             if self.balls[i].alive and jump[0]:
@@ -98,9 +100,6 @@ class GameEnvironment:
         return self.surface
 
 class GameCore:
-    def __init__(self):
-        return
-
     @staticmethod
     def out_of_bounds(game_object):
         if isinstance(game_object, Ball):
@@ -246,9 +245,6 @@ if __name__ == "__main__":
                 interface.score_population(scores)
                 interface.evolve_population()
 
-                # just some debug info
-                print("generation: " + str(interface.population.generation))
-                print("final score: " + str(env.score))
             env = GameCore.new_game()
             continue
 
