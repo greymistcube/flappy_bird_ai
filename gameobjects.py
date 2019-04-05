@@ -1,4 +1,5 @@
 import pygame
+import random
 from constants import *
 
 def load_image(file):
@@ -6,13 +7,25 @@ def load_image(file):
     return image
 
 class Ball:
+    images = {
+        "blue_jumping": load_image("./img/blue_ball_jumping.png"),
+        "blue_falling": load_image("./img/blue_ball_falling.png"),
+        "green_jumping": load_image("./img/green_ball_jumping.png"),
+        "green_falling": load_image("./img/green_ball_falling.png"),
+        "yellow_jumping": load_image("./img/yellow_ball_jumping.png"),
+        "yellow_falling": load_image("./img/yellow_ball_falling.png"),
+        "red_jumping": load_image("./img/red_ball_jumping.png"),
+        "red_falling": load_image("./img/red_ball_falling.png"),
+    }
     image = load_image("./img/blue_ball.png")
-    image_jumping = load_image("./img/blue_ball_jumping.png")
-    image_falling = load_image("./img/blue_ball_falling.png")
+    # image_jumping = load_image("./img/blue_ball_jumping.png")
+    # image_falling = load_image("./img/blue_ball_falling.png")
 
-    def __init__(self):
+    def __init__(self, color="blue"):
         self.rect = self.image.get_rect()
+        self.color = color
         self.x, self.y = START_POSITION
+        self.y = random.randint(40, 200)
         self.rect.center = (self.x, self.y)
         self.velocity = 0.0
         self.score = 0
@@ -32,11 +45,16 @@ class Ball:
     def jump(self):
         self.velocity = JUMP_VELOCITY
 
-    def get_image(self):
+    def get_image_key(self):
         if self.velocity < 0:
-            return self.image_jumping
+            state = "jumping"
         else:
-            return self.image_falling
+            state = "falling"
+        key = "{}_{}".format(self.color, state)
+        return key
+
+    def get_image(self):
+        return self.images[self.get_image_key()]
 
 class Wall:
     image = load_image("./img/brick_wall.png")

@@ -4,20 +4,20 @@ import numpy as np
 
 class Population:
     pop_size = 200
-    num_survive = 20
+    num_survive = 40
     num_mutate = 80
-    num_breed = 100
-    num_add_node = 40
-    num_new_blood = 0
+    num_breed = 80
+    num_add_node = 0
 
     def __init__(self, num_inputs, num_outputs):
         self.generation = 1
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
         self.evolver = Evolver
+        # parameters to tune for search optimization
         self.evolver.set_mutation_rules(
             mutate_rate=0.1,
-            mutate_strength=0.2,
+            mutate_strength=0.05,
             new_node_strength=0.1
         )
         self.genomes = [
@@ -26,102 +26,34 @@ class Population:
 
         return
 
-    """
-    def evolve(self):
-        self.genomes.sort(key=lambda x: x.score, reverse=True)
-        self.genomes = self.genomes[:self.num_survive]
-        print([int(genome.score) for genome in self.genomes])
-        print([int(genome.age) for genome in self.genomes])
-        print([genome.num_hiddens for genome in self.genomes])
-        for genome in self.genomes:
-            genome.age += 1
-        
-        # reset scores for survived genomes
-        # for genome in self.genomes:
-        #     genome.score = 0
-        
-        temp = []
-        for _ in range(self.num_mutate):
-            i = random.randint(0, self.num_survive - 1)
-            genome = copy.deepcopy(self.genomes[i])
-            # genome.score = 0
-            # genome.age = 0
-            temp.append(mutate(genome))
-        
-        for _ in range(self.num_breed):
-            temp.append(breed(self.genomes))
-        
-        for _ in range(self.num_add_node):
-            i = random.randint(0, self.num_survive - 1)
-            genome = copy.deepcopy(self.genomes[i])
-            genome.add_hidden_node()
-            # genome.score = 0
-            # genome.age = 0
-            temp.append(genome)
-        
-        #for _ in range(self.num_new_blood):
-        #    temp.append(Genome(self.num_inputs, self.num_outputs))
-        
-        self.genomes += temp
-
-        self.generation += 1
-        return
-    """
-
     def predicts(self, X):
-        result = [genome.predict(x) for genome, x in zip(self.genomes, X)]
-        return result
+        y = [genome.predict(x) for genome, x in zip(self.genomes, X)]
+        return y
 
     def score_genomes(self, scores):
         for genome, score in zip(self.genomes, scores):
             genome.score = score
         return
-    """
-    def evolve(self):
-        next_gen = []
-        scores = np.asarray([genome.score for genome in self.genomes])
-        # try to give more weight to later improvements
-        # not sure if this is optimal
-        scores = np.power(scores, np.log(self.generation + 1))
-        total_score = scores.sum()
-        fitness = scores / total_score
-
-        next_gen = np.random.choice(
-            range(self.pop_size),
-            size=self.pop_size - self.num_survive,
-            replace=True,
-            p=fitness
-        ).tolist()
-
-        prev_gen = self.genomes
-        self.genomes = []
-        for i in next_gen:
-            self.genomes.append(self.evolver.mutate(prev_gen[i]))
-            self.genomes[-1].score = 0
-        prev_gen.sort(key=lambda x: x.score, reverse=True)
-        for genome in prev_gen[:self.num_survive]:
-            self.genomes.append(copy.deepcopy(genome))
-            self.genomes[-1].score = 0
-
-        self.generation += 1
-        return
-    """
 
     def evolve(self):
         # sort genomes by its score
         self.genomes.sort(key=lambda genome: genome.score, reverse=True)
+
+        # logging
         print("generation: {}".format(self.generation))
         print("best score: {}".format(self.genomes[0].score))
         print("best type: {}".format(self.genomes[0].genome_type))
         print("------------------------")
+        print([genome.num_hiddens for genome in self.genomes[:10]])
 
         # elite genomes that stays unmodified
-        survived = copy.deepcopy(self.genomes[:self.num_survive])
+        survived = [copy.deepcopy(genome) for genome in self.genomes[:self.num_survive]]
 
         # compute fitness scores that try to give more weight to later improvements
         # not sure if this is optimal
         scores = np.asarray([genome.score for genome in self.genomes])
         scores = np.power(scores, np.log(self.generation + 1))
+        # scores = np.power(scores, 2)
         total_score = scores.sum()
         fitness = scores / total_score
 
@@ -141,14 +73,19 @@ class Population:
         )
         bred = [self.evolver.breed(get_parents()) for _ in range(self.num_breed)]
 
+        node_added = np.random.choice(
+            self.genomes,
+            size=self.num_add_node,
+            replace=True,
+            p=fitness
+        )
+        node_added = [self.evolver.add_node(genome) for genome in node_added]
+
         for genome in survived:
             genome.genome_type = "survived"
-        for genome in mutated:
-            genome.genome_type = "mutated"
-        for genome in bred:
-            genome.genome_type = "bred"
 
-        self.genomes = survived + mutated + bred
+        self.genomes = survived + mutated + bred + node_added
+        random.shuffle(self.genomes)
         self.generation += 1
         return
 
@@ -157,7 +94,7 @@ class Genome:
         self.genome_type = "survived"
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
-        self.num_hiddens = 5
+        self.num_hiddens = 2
         self.score = 0
         self.bias = 1
 
@@ -171,20 +108,6 @@ class Genome:
         else:
             self.w1 = np.zeros((self.num_hiddens, self.num_inputs + 1))
             self.w2 = np.zeros((self.num_outputs, self.num_hiddens))
-        return
-
-    def add_hidden_node(self):
-        self.w1 = np.append(
-            self.w1,
-            (np.random.random((1, self.num_inputs + 1)) - 0.5) * 0.2,
-            axis=0
-            )
-        self.w2 = np.append(
-            self.w2,
-            (np.random.random((self.num_outputs, 1)) - 0.5) * 0.1,
-            axis=1
-        )
-        self.num_hiddens = self.num_hiddens + 1
         return
 
     def predict(self, inputs):
@@ -223,20 +146,16 @@ class Evolver:
     def mutate(cls, genome):
         mutated = copy.deepcopy(genome)
 
-        get_mask = lambda shape: np.random.choice(
-            [0, 1],
+        prob = cls.mutate_rate / 2
+        get_var = lambda shape: np.random.choice(
+            [-cls.mutate_strength, 0, cls.mutate_strength],
             size=shape,
-            p=[1 - cls.mutate_rate, cls.mutate_rate]
+            p=[prob, 1 - 2 * prob, prob]
         )
-        get_var = lambda shape: (np.random.choice(shape) - 0.5) \
-            * cls.mutate_strength
-        mask1 = get_mask(mutated.w1.shape)
-        mask2 = get_mask(mutated.w2.shape)
-        var1 = get_var(mutated.w1.shape)
-        var2 = get_var(mutated.w2.shape)
+        mutated.w1 = mutated.w1 + get_var(mutated.w1.shape)
+        mutated.w2 = mutated.w2 + get_var(mutated.w2.shape)
 
-        mutated.w1 = mutated.w1 + (var1 * mask1)
-        mutated.w2 = mutated.w2 + (var2 * mask2)
+        mutated.genome_type = "mutated"
 
         return mutated
 
@@ -247,14 +166,29 @@ class Evolver:
         child = Genome(parents[0].num_inputs, parents[0].num_outputs, random_weights=False)
         child.w1 = w1
         child.w2 = w2
-        if parents[0].score > parents[1].score:
-            child.bias = parents[0].bias
-        else:
-            child.bias = parents[1].bias
-        child.score = 0
-        child.age = 0
+
         child.num_hiddens = max(parents[0].num_hiddens, parents[1].num_hiddens)
+
+        child.genome_type = "bred"
         return child
+    
+    @classmethod
+    def add_node(cls, genome):
+        node_added = copy.deepcopy(genome)
+        node_added.w1 = np.append(
+            node_added.w1,
+            (np.random.random((1, genome.num_inputs + 1)) - 0.5) * cls.new_node_strength,
+            axis=0
+            )
+        node_added.w2 = np.append(
+            node_added.w2,
+            (np.random.random((genome.num_outputs, 1)) - 0.5) * cls.new_node_strength,
+            axis=1
+        )
+        node_added.num_hiddens += 1
+        
+        node_added.genome_type = "node_added"
+        return node_added
 
 # takes two numpy arrays and produces a child by breeding
 # either the number of rows or the number of columns of two matrices
