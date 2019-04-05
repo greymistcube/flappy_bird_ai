@@ -9,6 +9,7 @@ from gameobjects import Ball, Wall
 # environment should be oblivious of whether ai is being used or not
 class GameEnvironment:
     game_number = 0
+
     def __init__(self, num_balls=1, num_walls=5, colors=["blue"]):
         GameEnvironment.game_number += 1
         self.score = 0
@@ -92,10 +93,11 @@ class GameEnvironment:
         self.surface.fill(WHITE)
         for ball in self.balls:
             if ball.alive:
-                self.surface.blit(ball.get_image(), ball.rect)
+                self.surface.blit(ball.get_surface(), ball.rect)
         for wall in self.walls:
-            self.surface.blit(wall.image, wall.lower)
-            self.surface.blit(wall.image, wall.upper)
+        #    self.surface.blit(wall.image, wall.lower)
+        #    self.surface.blit(wall.image, wall.upper)
+            self.surface.blit(wall.get_surface(), wall.rect)
 
         # render info text
         game_number_text = self.text_renderer(" Game: {}".format(self.game_number))
@@ -108,17 +110,17 @@ class GameEnvironment:
         return self.surface
 
 class GameSettings:
-    _tickrate = TICKRATE
-    _num_balls = 1
+    tickrate = TICKRATE
+    num_balls = 1
 
     @classmethod
     def set_num_balls(cls, num_balls):
-        cls._num_balls = num_balls
+        cls.num_balls = num_balls
 
     @classmethod
     def set_tickrate(cls, multiplier):
         if multiplier is not None:
-            cls._tickrate = TICKRATE * multiplier
+            cls.tickrate = TICKRATE * multiplier
 
 class GameCore:
     @staticmethod
@@ -126,7 +128,7 @@ class GameCore:
         if isinstance(game_object, Ball):
             return (game_object.rect.top < 0) or (game_object.rect.bottom > HEIGHT)
         elif isinstance(game_object, Wall):
-            return game_object.lower.right < 0
+            return game_object.rect.right < 0
         else:
             return False
 
@@ -134,10 +136,10 @@ class GameCore:
     def collision(ball, walls):
         # for the current setup, we only need to check with the first wall
         wall = walls[0]
-        if ball.rect.right >= wall.lower.left and \
-            ball.rect.left <= wall.lower.right:
-            return ball.rect.bottom >= wall.lower.top or \
-                ball.rect.top <= wall.upper.bottom
+        if ball.rect.right >= wall.hole_rect.left and \
+            ball.rect.left <= wall.hole_rect.right:
+            return ball.rect.bottom >= wall.hole_rect.bottom or \
+                ball.rect.top <= wall.hole_rect.top
         else:
             return False
 
