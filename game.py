@@ -69,12 +69,9 @@ if __name__ == "__main__":
     # pygame initialization
     screen = pygame.display.set_mode((WIDTH * ZOOM_LEVEL, HEIGHT * ZOOM_LEVEL))
     clock = pygame.time.Clock()
-    font = pygame.font.Font("./rsc/font/munro.ttf", 10)
 
     # aliasing static classes
-    ai = ""
     if len(sys.argv) > 1 and sys.argv[1] == "neat":
-        ai == "neat"
         interface = NeatInterface()
         core = interface.core
     else:

@@ -30,11 +30,12 @@ SKY_BLUE = (127, 191, 255)
 pygame.font.init()
 font = pygame.font.Font("./rsc/font/munro.ttf", 10)
 
-def out_of_bounds(object):
-    if isinstance(object, Ball):
-        return (object.rect.top < 0) or (object.rect.bottom > HEIGHT)
-    elif isinstance(object, Wall):
-        return object.rect.right < 0
+# maybe these functions should be inside core
+def out_of_bounds(game_object):
+    if isinstance(game_object, Ball):
+        return (game_object.rect.top < 0) or (game_object.rect.bottom > HEIGHT)
+    elif isinstance(game_object, Wall):
+        return game_object.rect.right < 0
     else:
         return False
 
@@ -121,6 +122,7 @@ class Environment:
         return
 
     def event_update(self, events):
+        # rudimentary error check
         if len(events.jumps) != len(self.balls):
             raise Exception("number of inputs doesn't match number of balls")
         # jump event
@@ -149,12 +151,4 @@ class Environment:
         for wall in self.walls:
             self.surface.blit(wall.get_surface(), wall.rect)
 
-        # render info text
-        game_number_text = self.text_renderer(" Game: {}".format(self._game_count))
-        score_text = self.text_renderer(" Score: {}".format(self.score))
-        alive_text = self.text_renderer(" Alive: {}".format(self.num_alive))
-
-        self.surface.blit(game_number_text, (0, 0))
-        self.surface.blit(score_text, (0, 12))
-        self.surface.blit(alive_text, (0, 24))
         return self.surface

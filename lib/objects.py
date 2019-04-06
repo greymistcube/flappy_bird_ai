@@ -96,8 +96,8 @@ class Buildings:
         (_tile_width * _num_tiles, _tile_height),
         pygame.SRCALPHA
     )
-    for i in range(_num_tiles):
-        _surface.blit(_image, (_tile_width * i, 0))
+    for _i in range(_num_tiles):
+        _surface.blit(_image, (_tile_width * _i, 0))
 
     def __init__(self, x=0):
         self.x = x
@@ -105,13 +105,12 @@ class Buildings:
         self.rect = self._surface.get_rect()
         self.rect.left = self.x
         self.rect.top = self.y
-    
+
     def move(self):
-        self.x += SCROLL_SPEED
+        self.x += BACKGROUND_SPEED
         if self.x <= -self._tile_width:
             self.x += self._tile_width
         self.rect.left = self.x
 
     def get_surface(self):
         return self._surface
-
