@@ -3,7 +3,7 @@ import pygame
 
 from lib.settings import Settings
 from lib.environment import Environment
-from lib.objects import Ball, Wall, Buildings
+# from lib.objects import Ball, Wall, Buildings
 
 # display
 WIDTH, HEIGHT = (320, 240)
@@ -35,7 +35,6 @@ num_balls = 1
 tickrate = TICKRATE
 
 # perhaps no class?
-#pygame.init()
 
 class Events:
     def __init__(self):
@@ -57,7 +56,7 @@ class Events:
                 self.multiplier = i
                 break
         return
-
+"""
     def quit_event(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -73,23 +72,23 @@ class Events:
                 self.multiplier = i
                 break
         return
-
+"""
 class Core:
     def __init__(self):
         self.settings = Settings()
         self.events = Events()
         return
-    
+
     def new_game(self):
         self.env = Environment()
 
     def update(self):
         self.events.update()
-        self.env.update(self.events)
         self.settings.update(self.events)
+        self.env.update(self.events)
 
     def game_over(self):
         return self.env.game_over()
-    
+
     def draw(self):
         return self.env.get_surface()

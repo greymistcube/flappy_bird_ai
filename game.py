@@ -92,7 +92,7 @@ if __name__ == "__main__":
         if core.game_over():
             core.new_game()
             continue
-        
+
         # draw screen
         surface = core.draw()
         surface = pygame.transform.scale(surface, screen.get_size())

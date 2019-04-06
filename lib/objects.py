@@ -40,7 +40,7 @@ class Ball:
         return
 
     def accelerate(self):
-        self.velocity = self.velocity + GRAVITY
+        self.velocity += + GRAVITY
         return
 
     def jump(self):
@@ -62,7 +62,10 @@ class Wall:
     _width, _height = _image.get_size()
     _y_offset = (HOLE_SIZE + _height) // 2
 
-    _surface = pygame.Surface((_width, _height * 2 + HOLE_SIZE), pygame.SRCALPHA)
+    _surface = pygame.Surface(
+        (_width, _height * 2 + HOLE_SIZE),
+        pygame.SRCALPHA
+    )
     _surface.blit(_image, (0, 0))
     _surface.blit(_image, (0, _height + HOLE_SIZE))
 
@@ -78,7 +81,7 @@ class Wall:
         return
 
     def move(self):
-        self.x = self.x + self._speed
+        self.x += self._speed
         self.rect.center = self.hole_rect.center = (self.x, self.y)
         return
 
@@ -87,10 +90,28 @@ class Wall:
 
 class Buildings:
     _image = load_image("./rsc/img/buildings.png")
+    _tile_width, _tile_height = _image.get_size()
+    _num_tiles = (WIDTH // _tile_width) + 2
+    _surface = pygame.Surface(
+        (_tile_width * _num_tiles, _tile_height),
+        pygame.SRCALPHA
+    )
+    for i in range(_num_tiles):
+        _surface.blit(_image, (_tile_width * i, 0))
 
-    def __init__(self):
-        self.rect = self._image.get_rect()
-        return
+    def __init__(self, x=0):
+        self.x = x
+        self.y = HEIGHT - self._tile_height
+        self.rect = self._surface.get_rect()
+        self.rect.left = self.x
+        self.rect.top = self.y
     
+    def move(self):
+        self.x += SCROLL_SPEED
+        if self.x <= -self._tile_width:
+            self.x += self._tile_width
+        self.rect.left = self.x
+
     def get_surface(self):
-        return self._image
+        return self._surface
+

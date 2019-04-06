@@ -61,6 +61,7 @@ class Environment:
         self.surface = pygame.Surface(RESOLUTION)
         self.background_scroll = 0
 
+        self.buildings = Buildings()
         for i in range(num_balls):
             self.add_ball(colors[i])
         for _ in range(num_walls):
@@ -95,6 +96,7 @@ class Environment:
 
     def cycle_update(self):
         # move game objects
+        self.buildings.move()
         for ball in self.balls:
             ball.move()
             ball.accelerate()
@@ -134,32 +136,17 @@ class Environment:
         return [ball.score for ball in self.balls]
 
     def text_renderer(self, text):
-        global font
         return font.render(text, False, BLACK)
 
     def get_surface(self):
         self.surface.fill(SKY_BLUE)
 
-        # render background first
-        tile = Buildings()
-        tile_size = tile_width, tile_height = tile.get_surface().get_size()
-        surface_size = self.surface.get_size()
-        for i in range((WIDTH // tile_width) + 2):
-            self.surface.blit(tile.get_surface(), (
-                i * tile_width + self.background_scroll,
-                HEIGHT - tile_height
-            ))
-        self.background_scroll -= 1
-        if self.background_scroll < -tile_width:
-            self.background_scroll += tile_width
-
         # render game objects
+        self.surface.blit(self.buildings.get_surface(), self.buildings.rect)
         for ball in self.balls:
             if ball.alive:
                 self.surface.blit(ball.get_surface(), ball.rect)
         for wall in self.walls:
-        #    self.surface.blit(wall.image, wall.lower)
-        #    self.surface.blit(wall.image, wall.upper)
             self.surface.blit(wall.get_surface(), wall.rect)
 
         # render info text
