@@ -1,7 +1,7 @@
 import random
 import pygame
 
-from constants import *
+from lib.constants import *
 
 def load_image(file):
     image = pygame.image.load(file)
@@ -9,17 +9,17 @@ def load_image(file):
 
 class Ball:
     # default image for size reference
-    _image = load_image("./img/blue_ball_falling.png")
+    _image = load_image("./rsc/img/blue_ball_falling.png")
     # lazy implementation of colored balls
-    _surfaces = {
-        "blue_jumping": load_image("./img/blue_ball_jumping.png"),
-        "blue_falling": load_image("./img/blue_ball_falling.png"),
-        "green_jumping": load_image("./img/green_ball_jumping.png"),
-        "green_falling": load_image("./img/green_ball_falling.png"),
-        "yellow_jumping": load_image("./img/yellow_ball_jumping.png"),
-        "yellow_falling": load_image("./img/yellow_ball_falling.png"),
-        "red_jumping": load_image("./img/red_ball_jumping.png"),
-        "red_falling": load_image("./img/red_ball_falling.png"),
+    _images = {
+        "blue_jumping": load_image("./rsc/img/blue_ball_jumping.png"),
+        "blue_falling": load_image("./rsc/img/blue_ball_falling.png"),
+        "green_jumping": load_image("./rsc/img/green_ball_jumping.png"),
+        "green_falling": load_image("./rsc/img/green_ball_falling.png"),
+        "yellow_jumping": load_image("./rsc/img/yellow_ball_jumping.png"),
+        "yellow_falling": load_image("./rsc/img/yellow_ball_falling.png"),
+        "red_jumping": load_image("./rsc/img/red_ball_jumping.png"),
+        "red_falling": load_image("./rsc/img/red_ball_falling.png"),
     }
 
     def __init__(self, color="blue"):
@@ -53,11 +53,11 @@ class Ball:
             state = "falling"
         key = "{}_{}".format(self.color, state)
 
-        return self._surfaces[key]
+        return self._images[key]
 
 class Wall:
     # class initialization
-    _image = load_image("./img/brick_wall.png")
+    _image = load_image("./rsc/img/brick_wall.png")
 
     _width, _height = _image.get_size()
     _y_offset = (HOLE_SIZE + _height) // 2
@@ -86,7 +86,7 @@ class Wall:
         return self._surface
 
 class Buildings:
-    _image = load_image("./img/buildings.png")
+    _image = load_image("./rsc/img/buildings.png")
 
     def __init__(self):
         self.rect = self._image.get_rect()

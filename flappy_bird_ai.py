@@ -242,15 +242,17 @@ def get_color():
 
 if __name__ == "__main__":
     pygame.init()
+
+    # pygame initialization
     screen = pygame.display.set_mode((WIDTH * ZOOM_LEVEL, HEIGHT * ZOOM_LEVEL))
     clock = pygame.time.Clock()
-    font = pygame.font.Font("./munro.ttf", 10)
+    font = pygame.font.Font("./rsc/font/munro.ttf", 10)
 
     # aliasing static classes
     settings = GameSettings
     core = GameCore
 
-    # initialize game before starting
+    # initialize game before startings
     ai = ""
     if len(sys.argv) > 1 and sys.argv[1] == "neat":
         ai = "neat"
