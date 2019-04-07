@@ -5,12 +5,12 @@ from neat.genome import Genome
 
 # list of constants for convenience
 MUTATE_RATE = 0.1
-#MUTATE_STRENGTH = 0.05
-MUTATE_STRENGTH = lambda: np.random.choice(
+DIVERGE_STRENGTH = 0.1
+# this is to prevent getting stuck in local minima
+mutate_strength_rule = lambda: np.random.choice(
     [0.1, 0.2, 0.4],
     p=[0.9, 0.09, 0.01]
 )
-DIVERGE_STRENGTH = 0.1
 
 def get_survived(genomes, n):
     survived = [
@@ -62,26 +62,40 @@ def _mutate(genome):
     mutated = copy.deepcopy(genome)
 
     prob = MUTATE_RATE / 2
-    get_var = lambda shape: np.random.choice(
-        [-MUTATE_STRENGTH(), 0, MUTATE_STRENGTH()],
-        size=shape,
+    w_delta = lambda w: np.random.choice(
+        [-mutate_strength_rule(), 0, mutate_strength_rule()],
+        size=w.shape,
         p=[prob, 1 - (2 * prob), prob]
     )
-    mutated.w1 = mutated.w1 + get_var(mutated.w1.shape)
-    mutated.w2 = mutated.w2 + get_var(mutated.w2.shape)
+    mutated.w1 += w_delta(mutated.w1)
+    mutated.w2 += w_delta(mutated.w2)
 
     mutated.genome_type = "mutated"
-
     return mutated
 
 def _breed(parents):
-    w1 = breed_weights(parents[0].w1, parents[1].w1)
-    w2 = breed_weights(parents[0].w2, parents[1].w2)
+    # create a new child with topology size at least as big as either parents
     child = Genome(parents[0].x_dim, parents[0].y_dim, random_weights=False)
+    child.h_dim = max(parents[0].h_dim, parents[1].h_dim)
+
+    # if both parents have h_dim = 1, then randomly mix weights
+    # otherwise, breed them by crossover
+    if parents[0].h_dim == 1 and parents[1].h_dim == 1:
+        w1 = mix_weights(parents[0].w1, parents[1].w1)
+        w2 = mix_weights(parents[0].w2, parents[1].w2)
+    else:
+        if parents[0].h_dim < parents[1].h_dim:
+            small_genome = parents[0]
+            large_genome = parents[1]
+        else:
+            small_genome = parents[1]
+            large_genome = parents[0]
+        splice_idx = np.random.randint(1, small_genome.h_dim + 1)
+        w1 = np.vstack([small_genome.w1[:splice_idx], large_genome.w1[splice_idx:]])
+        w2 = np.hstack([small_genome.w2[:, :splice_idx], large_genome.w2[:, splice_idx:]])
+
     child.w1 = w1
     child.w2 = w2
-
-    child.h_dim = max(parents[0].h_dim, parents[1].h_dim)
 
     child.genome_type = "bred"
     return child
@@ -103,11 +117,10 @@ def _diverge(genome):
     diverged.genome_type = "diverged"
     return diverged
 
-# crossover method should be implemented
 # takes two numpy arrays and produces a child by breeding
 # either the number of rows or the number of columns of two matrices
 # should be the same.
-def breed_weights(w1, w2):
+def mix_weights(w1, w2):
     prob = 0.5
 
     min_shape = min(w1.shape, w2.shape)

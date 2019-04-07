@@ -10,7 +10,9 @@ class Population:
     num_survive = 40
     num_mutate = 80
     num_breed = 80
-    num_diverge = 0
+    num_diverge = 20
+    def diverge_threshold(self, n):
+        return np.log10(n + 1)
 
     def __init__(self, num_input, num_output):
         self.generation = 1
@@ -25,8 +27,8 @@ class Population:
         return
 
     def predicts(self, X):
-        y = [genome.predict(x) for genome, x in zip(self.genomes, X)]
-        return y
+        Y = [genome.predict(x) for genome, x in zip(self.genomes, X)]
+        return Y
 
     def score_genomes(self, scores):
         for genome, score in zip(self.genomes, scores):
@@ -51,13 +53,21 @@ class Population:
         print("best score: {}".format(self.genomes[0].score))
         print("best fitness: {}".format(self.genomes[0].fitness))
         print("best type: {}".format(self.genomes[0].genome_type))
+        print("best w1 shape: {}".format(self.genomes[0].w1.shape))
+        print("best w2 shape: {}".format(self.genomes[0].w2.shape))
         print("------------------------")
         print([genome.h_dim for genome in self.genomes[:10]])
 
         survived = evolver.get_survived(self.genomes, self.num_survive)
-        mutated = evolver.get_mutated(self.genomes, self.num_mutate)
+        threshold = self.diverge_threshold(self.generation)
+        temp = [(genome.h_dim < threshold) for genome in self.genomes]
+        if all(temp):
+            mutated = evolver.get_mutated(self.genomes, self.num_mutate - self.num_diverge)
+            diverged = evolver.get_diverged(self.genomes, self.num_diverge)
+        else:
+            mutated = evolver.get_mutated(self.genomes, self.num_mutate - self.num_diverge)
+            diverged = []
         bred = evolver.get_bred(self.genomes, self.num_breed)
-        diverged = evolver.get_diverged(self.genomes, self.num_diverge)
 
         self.genomes = survived + mutated + bred + diverged
 

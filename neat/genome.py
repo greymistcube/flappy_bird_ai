@@ -5,7 +5,7 @@ class Genome:
         self.genome_type = "survived"
         self.x_dim = x_dim
         self.y_dim = y_dim
-        self.h_dim = 2
+        self.h_dim = 1
         self.score = 0
         self.fitness = 0
         # fixed bias for simplicity

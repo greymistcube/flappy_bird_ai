@@ -9,7 +9,7 @@ ZOOM_LEVEL = 3
 
 # game objects
 START_POSITION = (80, 80)
-WALL_DISTANCE = 240
+WALL_DISTANCE = 160
 HOLE_SIZE = 80
 HOLE_Y_VARIANCE = 40
 
@@ -69,8 +69,8 @@ class Environment:
         # if no wall exists, add one at the right end of the screen
         # otherwise, add one some distance away from the right-most one
         if not self.walls:
-            # x = WIDTH
-            x = 0
+            x = WIDTH
+            # x = 0
         else:
             x = self.walls[-1].x + WALL_DISTANCE
 

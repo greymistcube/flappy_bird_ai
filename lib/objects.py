@@ -33,7 +33,7 @@ class Ball:
         else:
             self.color = color
         self.x, self.y = START_POSITION
-        self.y = random.randint(40, 200)
+        # self.y = random.randint(40, 200)
         self.rect.center = (self.x, self.y)
         self.velocity = 0.0
         self.score = 0
@@ -103,6 +103,7 @@ class Buildings:
         (__tile_width * __num_tiles, __tile_height),
         pygame.SRCALPHA
     )
+
     for i in range(__num_tiles):
         __surface.blit(__image, (__tile_width * i, 0))
 

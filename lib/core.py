@@ -82,9 +82,8 @@ class Events:
         return
 
 class Core:
-    game_count = 0
-
     def __init__(self):
+        self.game_count = 0
         self.settings = Settings()
         self.events = Events()
         self.text_renderer = TextRenderer()
