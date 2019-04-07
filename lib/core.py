@@ -5,35 +5,7 @@ import pygame
 from lib.settings import Settings
 from lib.environment import Environment
 from lib.objects import Ball
-
-# display
-WIDTH, HEIGHT = (320, 240)
-RESOLUTION = (WIDTH, HEIGHT)
-ZOOM_LEVEL = 3
-
-# game objects
-START_POSITION = (80, 80)
-WALL_DISTANCE = 240
-HOLE_SIZE = 80
-HOLE_Y_VARIANCE = 40
-
-# mechenics
-JUMP_VELOCITY = -4
-GRAVITY = 0.2
-MOVE_SPEED = -2
-
-# other settings
-TICKRATE = 60
-SCROLL_SPEED = -1
-
-# predefined color tuples
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-SKY_BLUE = (127, 191, 255)
-
-# variable settings
-num_balls = 1
-tickrate = TICKRATE
+from lib.constants import BLACK
 
 pygame.init()
 #font = pygame.font.Font("./rsc/font/munro.ttf", 10)

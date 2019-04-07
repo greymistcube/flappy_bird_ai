@@ -1,6 +1,4 @@
-# from lib.core import TICKRATE
-
-TICKRATE = 60
+from lib.constants import TICKRATE
 
 class Settings:
     def __init__(self, num_balls=1, multiplier=1):
