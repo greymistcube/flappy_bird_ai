@@ -1,11 +1,15 @@
 # Flappy Bird with NEAT
 
-This project was inspired by [this paper.]
-(http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf) This is my own
-take on neuroevolution borrowing many ideas presented in the paper.
-This is just the first small project for implementing the idea from scratch,
-and not everything is implemented to its full extent. Its possible shortcomings
-and improvements will be discussed below.
+This project was inspired by
+[this paper.](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf)
+This is my own take on neuroevolution borrowing many ideas presented in the
+paper. This is just the first small project for implementing the idea from
+scratch, and not everything is implemented to its full extent. Its possible
+shortcomings and improvements will be discussed below.
+
+Use `python game.py` to run the game normally, or `python game.py neat`
+to run it with NEAT AI. Dependencies include `numpy` and `pygame` with
+versions `1.16.2` and `1.9.4` used when building the project.
 
 I strongly recommend to anyone interested to follow the link and read the paper
 as most of the material does not require extensive expertise and concepts are
@@ -36,3 +40,4 @@ automation at the highest level, and could become an indispensable tool for ML
 with ANNs.
 
 ## TWEANN and NEAT
+
