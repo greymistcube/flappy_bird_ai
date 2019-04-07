@@ -5,7 +5,6 @@ import pygame
 from lib.settings import Settings
 from lib.environment import Environment
 from lib.objects import Ball
-# from lib.objects import Ball, Wall, Buildings
 
 # display
 WIDTH, HEIGHT = (320, 240)
@@ -40,12 +39,12 @@ pygame.init()
 #font = pygame.font.Font("./rsc/font/munro.ttf", 10)
 
 class TextRenderer:
-    _font = pygame.font.Font("./rsc/font/munro.ttf", 10)
-    _line_height = _font.get_linesize()
+    __font = pygame.font.Font("./rsc/font/munro.ttf", 10)
+    __line_height = __font.get_linesize()
 
     # render a single line of text
     def text_to_surface(self, text):
-        return self._font.render(text, False, BLACK)
+        return self.__font.render(text, False, BLACK)
 
     # render multiple lines of texts
     def texts_to_surface(self, texts):
@@ -53,12 +52,12 @@ class TextRenderer:
         surface = pygame.Surface(
             (
                 max(text_surface.get_width() for text_surface in text_surfaces),
-                len(text_surfaces) * self._line_height
+                len(text_surfaces) * self.__line_height
             ),
             pygame.SRCALPHA
         )
         for i, text_surface in enumerate(text_surfaces):
-            surface.blit(text_surface, (0, self._line_height * i))
+            surface.blit(text_surface, (0, self.__line_height * i))
         return surface
 
 class Events:
@@ -83,9 +82,8 @@ class Events:
         return
 
 class Core:
-    _game_count = 0
-
     def __init__(self):
+        self.game_count = 0
         self.settings = Settings()
         self.events = Events()
         self.text_renderer = TextRenderer()
@@ -96,7 +94,7 @@ class Core:
         return
 
     def new_game(self):
-        self._game_count += 1
+        self.game_count += 1
         self.balls = self.new_balls()
         self.env = Environment(self.balls)
 
@@ -118,7 +116,7 @@ class Core:
 
     def get_info_surface(self):
         texts = [
-            " Game: {}".format(self._game_count),
+            " Game: {}".format(self.game_count),
             " Score: {}".format(self.env.score),
             " Alive: {}".format(self.env.num_alive)
         ]

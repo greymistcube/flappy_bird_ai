@@ -11,9 +11,9 @@ def load_image(file):
 
 class Ball:
     # default image for size reference
-    _image = load_image("./rsc/img/blue_ball_falling.png")
+    __image = load_image("./rsc/img/blue_ball_falling.png")
     # lazy implementation of colored balls
-    _images = {
+    __images = {
         "blue_jumping": load_image("./rsc/img/blue_ball_jumping.png"),
         "blue_falling": load_image("./rsc/img/blue_ball_falling.png"),
         "green_jumping": load_image("./rsc/img/green_ball_jumping.png"),
@@ -23,17 +23,17 @@ class Ball:
         "red_jumping": load_image("./rsc/img/red_ball_jumping.png"),
         "red_falling": load_image("./rsc/img/red_ball_falling.png"),
     }
-    _colors = ["blue", "green", "yellow", "red"]
+    __colors = ["blue", "green", "yellow", "red"]
 
     def __init__(self, color=None):
-        self.rect = self._image.get_rect()
+        self.rect = self.__image.get_rect()
         # randomize color if it is not given
         if color is None:
-            self.color = random.choice(self._colors)
+            self.color = random.choice(self.__colors)
         else:
             self.color = color
         self.x, self.y = START_POSITION
-        self.y = random.randint(40, 200)
+        # self.y = random.randint(40, 200)
         self.rect.center = (self.x, self.y)
         self.velocity = 0.0
         self.score = 0
@@ -60,64 +60,65 @@ class Ball:
             state = "falling"
         key = "{}_{}".format(self.color, state)
 
-        return self._images[key]
+        return self.__images[key]
 
 class Wall:
     # class initialization
-    _image = load_image("./rsc/img/brick_wall.png")
+    __image = load_image("./rsc/img/brick_wall.png")
 
-    _width, _height = _image.get_size()
-    _y_offset = (HOLE_SIZE + _height) // 2
+    __width, __height = __image.get_size()
+    __y_offset = (HOLE_SIZE + __height) // 2
 
-    _surface = pygame.Surface(
-        (_width, _height * 2 + HOLE_SIZE),
+    __surface = pygame.Surface(
+        (__width, __height * 2 + HOLE_SIZE),
         pygame.SRCALPHA
     )
-    _surface.blit(_image, (0, 0))
-    _surface.blit(_image, (0, _height + HOLE_SIZE))
+    __surface.blit(__image, (0, 0))
+    __surface.blit(__image, (0, __height + HOLE_SIZE))
 
-    _speed = MOVE_SPEED
+    __speed = MOVE_SPEED
 
     # here, (x, y) correspond to the center of the hole in a wall
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.rect = self._surface.get_rect()
-        self.hole_rect = pygame.Rect(0, 0, self._surface.get_width(), HOLE_SIZE)
+        self.rect = self.__surface.get_rect()
+        self.hole_rect = pygame.Rect(0, 0, self.__surface.get_width(), HOLE_SIZE)
         self.rect.center = self.hole_rect.center = (self.x, self.y)
         return
 
     def move(self):
-        self.x += self._speed
+        self.x += self.__speed
         self.rect.center = self.hole_rect.center = (self.x, self.y)
         return
 
     def get_surface(self):
-        return self._surface
+        return self.__surface
 
 class Buildings:
-    _image = load_image("./rsc/img/buildings.png")
-    _tile_width, _tile_height = _image.get_size()
-    _num_tiles = (WIDTH // _tile_width) + 2
-    _surface = pygame.Surface(
-        (_tile_width * _num_tiles, _tile_height),
+    __image = load_image("./rsc/img/buildings.png")
+    __tile_width, __tile_height = __image.get_size()
+    __num_tiles = (WIDTH // __tile_width) + 2
+    __surface = pygame.Surface(
+        (__tile_width * __num_tiles, __tile_height),
         pygame.SRCALPHA
     )
-    for _i in range(_num_tiles):
-        _surface.blit(_image, (_tile_width * _i, 0))
+
+    for i in range(__num_tiles):
+        __surface.blit(__image, (__tile_width * i, 0))
 
     def __init__(self, x=0):
         self.x = x
-        self.y = HEIGHT - self._tile_height
-        self.rect = self._surface.get_rect()
+        self.y = HEIGHT - self.__tile_height
+        self.rect = self.__surface.get_rect()
         self.rect.left = self.x
         self.rect.top = self.y
 
     def move(self):
         self.x += BACKGROUND_SPEED
-        if self.x <= -self._tile_width:
-            self.x += self._tile_width
+        if self.x <= -self.__tile_width:
+            self.x += self.__tile_width
         self.rect.left = self.x
 
     def get_surface(self):
-        return self._surface
+        return self.__surface
