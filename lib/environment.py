@@ -50,7 +50,7 @@ def collision(ball, walls):
 
 # environment should be oblivious of whether ai is being used or not
 class Environment:
-    _num_walls = 5
+    __num_walls = 5
 
     def __init__(self, balls):
         self.score = 0
@@ -59,7 +59,7 @@ class Environment:
 
         self.walls = []
         self.buildings = Buildings()
-        for _ in range(self._num_walls):
+        for _ in range(self.__num_walls):
             self.add_wall()
 
         self.surface = pygame.Surface(RESOLUTION)

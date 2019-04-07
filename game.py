@@ -65,7 +65,7 @@ class NeatCore(lib.Core):
         ])
 
         texts = [
-            " Game: {}".format(self._game_count),
+            " Game: {}".format(self.game_count),
             " Score: {}".format(self.env.score),
             " Alive: {}".format(self.env.num_alive),
             " (Blue) Survived: {}".format(num_survived),
