@@ -8,8 +8,8 @@ from constants import *
 # game specific neat interface
 class NeatCore(lib.Core):
     # game specific variables
-    _num_inputs = 6
-    _num_outputs = 1
+    _num_input = 6
+    _num_output = 1
 
     _genome_to_color = {
         "survived": "blue",
@@ -21,7 +21,7 @@ class NeatCore(lib.Core):
     # overriden methods
     def __init__(self):
         super().__init__()
-        self.population = neat.Population(self._num_inputs, self._num_outputs)
+        self.population = neat.Population(self._num_input, self._num_output)
         # set num_balls to population size
         self.settings.set_num_balls(self.population.pop_size)
         return
@@ -45,10 +45,35 @@ class NeatCore(lib.Core):
         if self.env.game_over():
             scores = [ball.score for ball in self.env.balls]
             self.population.score_genomes(scores)
-            self.population.evolve()
+            self.population.evolve_population()
             return True
         else:
             return False
+
+    def get_info_surface(self):
+        num_survived = sum([
+            ball.color == "blue" and ball.alive
+            for ball in self.env.balls
+        ])
+        num_mutated = sum([
+            ball.color == "green" and ball.alive
+            for ball in self.env.balls
+        ])
+        num_bred = sum([
+            ball.color == "yellow" and ball.alive
+            for ball in self.env.balls
+        ])
+
+        texts = [
+            " Game: {}".format(self._game_count),
+            " Score: {}".format(self.env.score),
+            " Alive: {}".format(self.env.num_alive),
+            " (Blue) Survived: {}".format(num_survived),
+            " (Green) Mutated: {}".format(num_mutated),
+            " (Yellow) Bred: {}".format(num_bred)
+        ]
+
+        return self.text_renderer.texts_to_surface(texts)
 
     # extended methods
     def get_x(self, ball, walls):
@@ -62,7 +87,7 @@ class NeatCore(lib.Core):
                 walls[1].y / HEIGHT
             ]
         else:
-            return [0] * self._num_inputs
+            return [0] * self._num_input
 
     def get_X(self):
         return [

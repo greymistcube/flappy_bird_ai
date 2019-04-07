@@ -103,8 +103,8 @@ class Buildings:
         (_tile_width * _num_tiles, _tile_height),
         pygame.SRCALPHA
     )
-    for _i in range(_num_tiles):
-        _surface.blit(_image, (_tile_width * _i, 0))
+    for i in range(_num_tiles):
+        _surface.blit(_image, (_tile_width * i, 0))
 
     def __init__(self, x=0):
         self.x = x

@@ -5,7 +5,6 @@ import pygame
 from lib.settings import Settings
 from lib.environment import Environment
 from lib.objects import Ball
-# from lib.objects import Ball, Wall, Buildings
 
 # display
 WIDTH, HEIGHT = (320, 240)
