@@ -1,7 +1,7 @@
 import neat
 import lib
 
-from lib.constants import *
+from lib.constants import WIDTH, HEIGHT
 
 # game specific neat interface
 # this straps on to the original Core class

@@ -1,7 +1,7 @@
 # display
 WIDTH, HEIGHT = (320, 240)
 RESOLUTION = (WIDTH, HEIGHT)
-ZOOM_LEVEL = 3
+ZOOM_LEVEL = 2
 
 # game objects
 START_POSITION = (80, 80)
@@ -16,7 +16,8 @@ MOVE_SPEED = -2
 
 # other settings
 TICKRATE = 60
-BACKGROUND_SPEED = -1
+WALL_SPEED = -1
+CLOUD_SPEED = -0.5
 
 # predefined color tuples
 WHITE = (255, 255, 255)

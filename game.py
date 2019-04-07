@@ -2,8 +2,9 @@ import sys
 import pygame
 
 import lib
+from lib.constants import WIDTH, HEIGHT, ZOOM_LEVEL
+
 import neatinterface
-from constants import *
 
 if __name__ == "__main__":
     # pygame initialization
@@ -11,7 +12,6 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode((WIDTH * ZOOM_LEVEL, HEIGHT * ZOOM_LEVEL))
     clock = pygame.time.Clock()
 
-    # aliasing static classes
     if len(sys.argv) > 1 and sys.argv[1] == "neat":
         core = neatinterface.NeatCore()
     else:
