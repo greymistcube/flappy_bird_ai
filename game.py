@@ -1,5 +1,4 @@
 import sys
-import random
 import pygame
 
 import lib

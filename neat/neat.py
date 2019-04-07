@@ -4,7 +4,11 @@ import numpy as np
 
 # list of constants for convenience
 MUTATE_RATE = 0.1
-MUTATE_STRENGTH = 0.05
+#MUTATE_STRENGTH = 0.05
+MUTATE_STRENGTH = lambda: np.random.choice(
+    [0.1, 0.2, 0.4],
+    p=[0.9, 0.09, 0.01]
+)
 DIVERGE_STRENGTH = 0.1
 
 class Population:
@@ -14,17 +18,16 @@ class Population:
     num_mutate = 80
     num_breed = 80
     num_diverge = 0
-    # new_node_rule
 
-    def __init__(self, num_inputs, num_outputs):
+    def __init__(self, num_input, num_output):
         self.generation = 1
-        self.num_inputs = num_inputs
-        self.num_outputs = num_outputs
+        self.num_input = num_input
+        self.num_output = num_output
         self.evolver = Evolver
 
         # creation of initial gene pool
         self.genomes = [
-            Genome(self.num_inputs, self.num_outputs) for _ in range(self.pop_size)
+            Genome(self.num_input, self.num_output) for _ in range(self.pop_size)
         ]
 
         return
@@ -47,7 +50,7 @@ class Population:
         print("best score: {}".format(self.genomes[0].score))
         print("best type: {}".format(self.genomes[0].genome_type))
         print("------------------------")
-        print([genome.num_hiddens for genome in self.genomes[:10]])
+        print([genome.num_hidden for genome in self.genomes[:10]])
 
         # elite genomes that stays unmodified
         survived = [copy.deepcopy(genome) for genome in self.genomes[:self.num_survive]]
@@ -96,24 +99,24 @@ class Population:
         return
 
 class Genome:
-    def __init__(self, num_inputs, num_outputs, random_weights=True):
+    def __init__(self, num_input, num_output, random_weights=True):
         self.genome_type = "survived"
-        self.num_inputs = num_inputs
-        self.num_outputs = num_outputs
-        self.num_hiddens = 2
+        self.num_input = num_input
+        self.num_output = num_output
+        self.num_hidden = 2
         self.score = 0
         self.bias = 1
 
         if random_weights:
             self.w1 = np.random.random((
-                self.num_hiddens, self.num_inputs + 1
+                self.num_hidden, self.num_input + 1
                 )) * 2 - 1
             self.w2 = np.random.random((
-                self.num_outputs, self.num_hiddens
+                self.num_output, self.num_hidden
                 )) * 2 - 1
         else:
-            self.w1 = np.zeros((self.num_hiddens, self.num_inputs + 1))
-            self.w2 = np.zeros((self.num_outputs, self.num_hiddens))
+            self.w1 = np.zeros((self.num_hidden, self.num_input + 1))
+            self.w2 = np.zeros((self.num_output, self.num_hidden))
         return
 
     # x, h, and y are input vector, hidden vector, and output vector respectively
@@ -154,7 +157,7 @@ class Evolver:
 
         prob = cls._mutate_rate / 2
         get_var = lambda shape: np.random.choice(
-            [-cls._mutate_strength, 0, cls._mutate_strength],
+            [-cls._mutate_strength(), 0, cls._mutate_strength()],
             size=shape,
             p=[prob, 1 - 2 * prob, prob]
         )
@@ -169,11 +172,11 @@ class Evolver:
     def breed(cls, parents):
         w1 = breed_weights(parents[0].w1, parents[1].w1)
         w2 = breed_weights(parents[0].w2, parents[1].w2)
-        child = Genome(parents[0].num_inputs, parents[0].num_outputs, random_weights=False)
+        child = Genome(parents[0].num_input, parents[0].num_output, random_weights=False)
         child.w1 = w1
         child.w2 = w2
 
-        child.num_hiddens = max(parents[0].num_hiddens, parents[1].num_hiddens)
+        child.num_hidden = max(parents[0].num_hidden, parents[1].num_hidden)
 
         child.genome_type = "bred"
         return child
@@ -183,19 +186,20 @@ class Evolver:
         diverged = copy.deepcopy(genome)
         diverged.w1 = np.append(
             diverged.w1,
-            (np.random.random((1, genome.num_inputs + 1)) - 0.5) * cls._diverge_strength,
+            (np.random.random((1, genome.num_input + 1)) - 0.5) * cls._diverge_strength,
             axis=0
             )
         diverged.w2 = np.append(
             diverged.w2,
-            (np.random.random((genome.num_outputs, 1)) - 0.5) * cls._diverge_strength,
+            (np.random.random((genome.num_output, 1)) - 0.5) * cls._diverge_strength,
             axis=1
         )
-        diverged.num_hiddens += 1
+        diverged.num_hidden += 1
 
         diverged.genome_type = "diverged"
         return diverged
 
+# breeding should be updated
 # takes two numpy arrays and produces a child by breeding
 # either the number of rows or the number of columns of two matrices
 # should be the same.
