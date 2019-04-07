@@ -116,25 +116,26 @@ class Genome:
             self.w2 = np.zeros((self.num_outputs, self.num_hiddens))
         return
 
-    def predict(self, inputs):
+    # x, h, and y are input vector, hidden vector, and output vector respectively
+    def predict(self, x):
         # append bias to inputs
-        inputs = np.append(self.bias, inputs)
+        x = np.append(self.bias, x)
 
-        # multiply by weight and push to hidden
-        hiddens = np.dot(self.w1, inputs.reshape(-1, 1))
-        # hiddens = self.layer_output(inputs, self.w1)
+        # multiply by weight and push to hidden layer
+        h = np.dot(self.w1, x.reshape(-1, 1))
+        # h = self.layer_output(x, self.w1)
 
-        # apply relu activation to hidden
+        # apply relu activation to h
         # sigmoid activation commented out below
-        # hiddens = 1 / (1 + np.exp(-1 * hiddens))
-        hiddens = hiddens * (hiddens > 0)
+        # h = 1 / (1 + np.exp(-1 * h))
+        h = h * (h > 0)
 
         # multiply by weight and push to output
-        outputs = np.dot(self.w2, hiddens.reshape(-1, 1))
+        y = np.dot(self.w2, h.reshape(-1, 1))
 
         # return formatted output
-        outputs = np.ndarray.flatten(outputs > 0)
-        return np.ndarray.tolist(outputs)
+        y = np.ndarray.flatten(y > 0)
+        return np.ndarray.tolist(y)
 
     def set_score(self, score):
         self.score = score

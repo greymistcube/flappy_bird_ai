@@ -27,8 +27,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 SKY_BLUE = (127, 191, 255)
 
-pygame.font.init()
-font = pygame.font.Font("./rsc/font/munro.ttf", 10)
+pygame.init()
 
 # maybe these functions should be inside core
 def out_of_bounds(game_object):
@@ -51,26 +50,19 @@ def collision(ball, walls):
 
 # environment should be oblivious of whether ai is being used or not
 class Environment:
-    _game_count = 0
+    _num_walls = 5
 
-    def __init__(self, num_balls=1, num_walls=5, colors=["blue"]):
-        Environment._game_count += 1
+    def __init__(self, balls):
         self.score = 0
-        self.num_alive = num_balls
-        self.balls = []
+        self.balls = balls
+        self.num_alive = len(self.balls)
+
         self.walls = []
-        self.surface = pygame.Surface(RESOLUTION)
-        self.background_scroll = 0
-
         self.buildings = Buildings()
-        for i in range(num_balls):
-            self.add_ball(colors[i])
-        for _ in range(num_walls):
+        for _ in range(self._num_walls):
             self.add_wall()
-        return
 
-    def add_ball(self, color):
-        self.balls.append(Ball(color))
+        self.surface = pygame.Surface(RESOLUTION)
         return
 
     def add_wall(self):
@@ -127,7 +119,7 @@ class Environment:
             raise Exception("number of inputs doesn't match number of balls")
         # jump event
         for i, jump in enumerate(events.jumps):
-            if self.balls[i].alive and jump[0]:
+            if self.balls[i].alive and jump:
                 self.balls[i].jump()
         return
 
@@ -136,9 +128,6 @@ class Environment:
 
     def get_scores(self):
         return [ball.score for ball in self.balls]
-
-    def text_renderer(self, text):
-        return font.render(text, False, BLACK)
 
     def get_surface(self):
         self.surface.fill(SKY_BLUE)

@@ -7,25 +7,52 @@ import neat
 from constants import *
 
 # game specific neat interface
-class NeatInterface:
+class NeatCore(lib.Core):
     # game specific variables
     _num_inputs = 6
     _num_outputs = 1
 
+    _genome_to_color = {
+        "survived": "blue",
+        "mutated": "green",
+        "bred": "yellow",
+        "diverged": "red"
+    }
+
+    # overriden methods
     def __init__(self):
-        self.core = lib.Core()
+        super().__init__()
         self.population = neat.Population(self._num_inputs, self._num_outputs)
-        self.core.settings.set_num_balls(self.population.pop_size)
+        # set num_balls to population size
+        self.settings.set_num_balls(self.population.pop_size)
         return
 
-    # logic is bit complicated here
-    # pylint gets bit screwy due to nested lambdas with list comprehension
-    def get_inputs(self, env):
-        return [
-            self.to_input(ball, env.walls) for ball in env.balls
-        ]
+    def new_balls(self):
+        colors = self.get_colors()
+        return [lib.objects.Ball(color) for color in colors]
 
-    def to_input(self, ball, walls):
+    def update(self):
+        self.events.update()
+        self.settings.update(self.events)
+        # this part overrides keyboard evaluated jumps
+        # before calling the update for the environment
+        self.events.jumps = [
+            y[0]
+            for y in self.get_Y(self.get_X())
+        ]
+        self.env.update(self.events)
+
+    def game_over(self):
+        if self.env.game_over():
+            scores = [ball.score for ball in self.env.balls]
+            self.population.score_genomes(scores)
+            self.population.evolve()
+            return True
+        else:
+            return False
+
+    # extended methods
+    def get_x(self, ball, walls):
         if ball.alive:
             return [
                 ball.velocity / 100,
@@ -38,46 +65,34 @@ class NeatInterface:
         else:
             return [0] * self._num_inputs
 
-    def get_outputs(self, inputs):
-        return self.population.predicts(inputs)
+    def get_X(self):
+        return [
+            self.get_x(ball, self.env.walls) for ball in self.env.balls
+        ]
 
-    def score_population(self, scores):
-        self.population.score_genomes(scores)
-
-    def evolve_population(self):
-        self.population.evolve()
+    def get_Y(self, X):
+        return self.population.predicts(X)
 
     def get_colors(self):
-        colors = []
-        for genome in self.population.genomes:
-            if genome.genome_type == "survived":
-                colors.append("blue")
-            elif genome.genome_type == "mutated":
-                colors.append("green")
-            elif genome.genome_type == "bred":
-                colors.append("yellow")
-            else:
-                colors.append("red")
-        return colors
-
-def get_color():
-    return random.choice(["blue", "green", "yellow", "red"])
+        return [
+            self._genome_to_color[genome.genome_type]
+            for genome in self.population.genomes
+        ]
 
 if __name__ == "__main__":
-    pygame.init()
-
     # pygame initialization
+    pygame.init()
     screen = pygame.display.set_mode((WIDTH * ZOOM_LEVEL, HEIGHT * ZOOM_LEVEL))
     clock = pygame.time.Clock()
 
     # aliasing static classes
     if len(sys.argv) > 1 and sys.argv[1] == "neat":
-        interface = NeatInterface()
-        core = interface.core
+        core = NeatCore()
     else:
         core = lib.Core()
 
     core.new_game()
+
     # main loop
     while True:
         # set tick rate to 60 per second
@@ -95,4 +110,3 @@ if __name__ == "__main__":
         surface = pygame.transform.scale(surface, screen.get_size())
         screen.blit(surface, surface.get_rect())
         pygame.display.flip()
-        # todo: create additional info layer if ai is enabled

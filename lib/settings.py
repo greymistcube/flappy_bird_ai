@@ -8,12 +8,10 @@ class Settings:
         self.tickrate = TICKRATE * multiplier
 
     def update(self, events):
-        if events.multiplier is not None:
-            self.tickrate = TICKRATE * events.multiplier
+        self.tickrate = TICKRATE * events.multiplier
 
     def set_num_balls(self, num_balls):
         self.num_balls = num_balls
 
     def set_tickrate(self, multiplier):
-        if multiplier is not None:
-            self.tickrate = TICKRATE * multiplier
+        self.tickrate = TICKRATE * multiplier

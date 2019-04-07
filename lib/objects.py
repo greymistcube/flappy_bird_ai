@@ -3,6 +3,8 @@ import pygame
 
 from lib.constants import *
 
+pygame.init()
+
 def load_image(file):
     image = pygame.image.load(file)
     return image
@@ -21,10 +23,15 @@ class Ball:
         "red_jumping": load_image("./rsc/img/red_ball_jumping.png"),
         "red_falling": load_image("./rsc/img/red_ball_falling.png"),
     }
+    _colors = ["blue", "green", "yellow", "red"]
 
-    def __init__(self, color="blue"):
+    def __init__(self, color=None):
         self.rect = self._image.get_rect()
-        self.color = color
+        # randomize color if it is not given
+        if color is None:
+            self.color = random.choice(self._colors)
+        else:
+            self.color = color
         self.x, self.y = START_POSITION
         self.y = random.randint(40, 200)
         self.rect.center = (self.x, self.y)
