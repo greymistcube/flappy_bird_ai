@@ -9,7 +9,7 @@ ZOOM_LEVEL = 3
 
 # game objects
 START_POSITION = (80, 80)
-WALL_DISTANCE = 240
+WALL_DISTANCE = 160
 HOLE_SIZE = 80
 HOLE_Y_VARIANCE = 40
 
@@ -50,7 +50,7 @@ def collision(ball, walls):
 
 # environment should be oblivious of whether ai is being used or not
 class Environment:
-    _num_walls = 5
+    __num_walls = 5
 
     def __init__(self, balls):
         self.score = 0
@@ -59,7 +59,7 @@ class Environment:
 
         self.walls = []
         self.buildings = Buildings()
-        for _ in range(self._num_walls):
+        for _ in range(self.__num_walls):
             self.add_wall()
 
         self.surface = pygame.Surface(RESOLUTION)
@@ -69,8 +69,8 @@ class Environment:
         # if no wall exists, add one at the right end of the screen
         # otherwise, add one some distance away from the right-most one
         if not self.walls:
-            # x = WIDTH
-            x = 0
+            x = WIDTH
+            # x = 0
         else:
             x = self.walls[-1].x + WALL_DISTANCE
 
