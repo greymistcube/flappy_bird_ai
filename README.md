@@ -261,4 +261,65 @@ With all this in mind, we can start with a structure something like below.
 
 ![Initial Topology](./doc/flappy_neat_initial.png)
 
+### Details on Implementation
+
+Implementation is done pretty straightforwardly. Even with further increase in
+structural complexity, we only get simple fully connected feed foward networks
+like below.
+
+![Complex Topology](./doc/flappy_neat_complex.png)
+
+The hidden layer uses relu and the output layer (or rather node in this case)
+uses step function as activation in current implementation.
+
 ### Necessity of NEAT
+
+Before moving on with NEAT, we do need to consider beforehand whether
+the problem of beating the game has actually gotten harder. Although
+the search space has expaneded in terms of its size and dimension,
+if the solution space can be expressed as a single linear inequality of the form
+```
+w0*b + w1*x1 + ... + w6*x6 > c
+```
+then the above starting structure would be sufficient and there is no need
+for NEAT to evolve topological complexity any further.
+
+Long story short, we now need a network capable of solving XOR problems, so
+the topology of ANNs must grow at some point to accomodate this.
+
+### Topological Sufficiency Single Hidden Layer
+
+Even without adding additional layers, if enough number of hidden nodes
+are added, any solution space can be approximated within any &epsilon; margin.
+This is due to the
+[universal approximation theorem.](https://en.wikipedia.org/wiki/Universal_approximation_theorem)
+
+Without going into full detail, let's consider the following simplest
+possible ANN structure with relu and step activation for hidden and output nodes
+respectively.
+
+![UAT ANN Example 01](./doc/uat_example_01.png)
+![UAT Step Example 01](./doc/step_example_01.png)
+
+This network can solve any step function of the form appearing on the right
+where a is an arbitrary constant (in fact, the network can also solve the
+non-increasing version going from 1 to 0 with a single step).
+
+Similarly, the network on the left can solve any step function of the
+form on the right in the diagrams below (again, the function also may go
+from 1 to 0 back to 1).
+
+![UAT ANN Example 02](./doc/uat_example_02.png)
+![UAT Step Example 02](./doc/step_example_02.png)
+
+It is then not hard to see that a network only with more hidden nodes
+that can solve something more complicated like below (that is,
+with at least 8 nodes to be exact).
+
+![UAT Step Example 03](./doc/step_example_03.png)
+
+### Getting out of Local Maxima
+
+### Hyperparameter Tuning in Augmenting Topologies
+
+### Returning to the Competing Conventions Problem
