@@ -84,7 +84,7 @@ Conceptually, a crossover refers to a breeding of two parent genomes such as
 to produce children of the following forms.
 
     AAABBBBBBBB
-
+flappy
     BBBAAAAAAAA
 
 The shared index of the genomes where they are sliced is called the crossover
@@ -193,3 +193,133 @@ and mutation via perturbations preserves the number of hidden nodes, eventually,
 the entire population is replaced by genomes with two hidden nodes (unless a
 genome with simpler structure continues to outperform all other genomes
 and is kept through generations).
+
+## Discussion
+
+One can easily find an example of an implementation of AI learning to play
+flappy bird clones. There are indeed rather abundant amount of such examples
+on github, youtube, etc. In this section, I try to make a case of why
+this project is at least somewhat different. The goal wasn't simply to beat
+a flappy bird clone but to get a deeper insight into how NEAT works.
+
+### Flappy Bird is Too Easy to Solve
+
+As a human player, flappy bird isn't particularly thought demanding game.
+The logic is very simple. One looks ahead for the next hole, and if the bird
+is too low, you jump. If the bird is too high, you let it fall until the
+position of the bird becomes too low compared to the position of the hole.
+
+With this in mind, if the variables such as distance between walls and
+size of holes are set generously, the game can be learned with an ANN
+with the following topology.
+
+![Super Simple ANN](./doc/super_simple.png)
+
+As node b is for bias, this ANN only takes in x1 from the game and decideds
+whether to jump or not. For x1, we can simply give the height difference
+between the bird and center of the next hole. And yes, I have tried this
+and it was successful.
+
+### Is Flappy Bird Really That Easy?
+
+However, there are several problems with the above approach. One that is more
+readily noticable from the picture above is that this is essentially
+equivalent to solving a linear equation. Although it is nice to see
+ANN figure out the proper associated constants (weights that is), we really
+don't need fancy ANN implemented for such a simple task.
+
+The bigger problem that is harder to notice is that one responsible for
+designing such algorithm is essentially *inadvertently solving the problem for
+the AI during the preprocessing stage.* Although preprocessing of data is
+necessary for solving the majority of problems in this field, as we are often
+limited by small amount of resources (computing power) compared to the
+vast dimensionality of the solution space to search for, doing this for such
+a simple game as flappy bird gives us little to no insight into how an ANN
+works.
+
+I would say since flappy bird is rather a simple game, we have a good
+oppertunity to tease out these inadvertant preprocessing part and try to
+come up with an algorithm that is more general and is in accordance with
+the goal of NEAT.
+
+### Let's Make Flappy Bird Harder for Computers
+
+When a player *decides* to look for the next hole, a decision has been made
+about which wall to look for (pipes in case of the original game). We ignore
+the one behind the bird, and look for the one in front of the bird. This
+seemingly simple task is already dealing with three variables, making
+comparisons, and deciding what to use and what not to.
+
+Similarly, when we give the height difference between the bird and the hole as
+an input value, we are doing the arithmetics work for the computer.
+
+Additionally, we can throw in the y velocity value of the bird as one
+of input values, even though it is not relavent in beating the game,
+just to see if the algorithm learns to ignore it.
+
+With all this in mind, we can start with a structure something like below.
+
+![Initial Topology](./doc/flappy_neat_initial.png)
+
+### Details on Implementation
+
+Implementation is done pretty straightforwardly. Even with further increase in
+structural complexity, we only get simple fully connected feed foward networks
+like below.
+
+![Complex Topology](./doc/flappy_neat_complex.png)
+
+The hidden layer uses relu and the output layer (or rather node in this case)
+uses step function as activation in current implementation.
+
+### Necessity of NEAT
+
+Before moving on with NEAT, we do need to consider beforehand whether
+the problem of beating the game has actually gotten harder. Although
+the search space has expaneded in terms of its size and dimension,
+if the solution space can be expressed as a single linear inequality of the form
+```
+w0*b + w1*x1 + ... + w6*x6 > c
+```
+then the above starting structure would be sufficient and there is no need
+for NEAT to evolve topological complexity any further.
+
+Long story short, we now need a network capable of solving XOR problems, so
+the topology of ANNs must grow at some point to accomodate this.
+
+### Topological Sufficiency Single Hidden Layer
+
+Even without adding additional layers, if enough number of hidden nodes
+are added, any solution space can be approximated within any &epsilon; margin.
+This is due to the
+[universal approximation theorem.](https://en.wikipedia.org/wiki/Universal_approximation_theorem)
+
+Without going into full detail, let's consider the following simplest
+possible ANN structure with relu and step activation for hidden and output nodes
+respectively.
+
+![UAT ANN Example 01](./doc/uat_example_01.png)
+![UAT Step Example 01](./doc/step_example_01.png)
+
+This network can solve any step function of the form appearing on the right
+where a is an arbitrary constant (in fact, the network can also solve the
+non-increasing version going from 1 to 0 with a single step).
+
+Similarly, the network on the left can solve any step function of the
+form on the right in the diagrams below (again, the function also may go
+from 1 to 0 back to 1).
+
+![UAT ANN Example 02](./doc/uat_example_02.png)
+![UAT Step Example 02](./doc/step_example_02.png)
+
+It is then not hard to see that a network only with more hidden nodes
+that can solve something more complicated like below (that is,
+with at least 8 nodes to be exact).
+
+![UAT Step Example 03](./doc/step_example_03.png)
+
+### Getting out of Local Maxima
+
+### Hyperparameter Tuning in Augmenting Topologies
+
+### Returning to the Competing Conventions Problem
