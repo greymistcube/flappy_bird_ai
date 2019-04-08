@@ -24,9 +24,9 @@ of the network is too large, search for the solution becomes too slow as
 the computational power required grows exponentially relative to the size
 of the network.
 
-Finding the right network structure for the job at hand is often part of the
+Finding the right network topology for the job at hand is often part of the
 most time consuming process in dealing with ANNs. Starting with a wrong network
-structure, tuning of other hyperparameters, such as deciding learning rate,
+topology, tuning of other hyperparameters, such as deciding learning rate,
 batch optimization, weight initialization, etc., each of which is associated
 with numerous variables to tune, becomes wasted labor.
 
@@ -74,17 +74,17 @@ discussed later on.
 ## Crossovers
 
 Conceptually, a crossover refers to a breeding of two parent genomes such as
-```
-AAAAAAAAAAA
 
-BBBBBBBBBBB
-```
+    AAAAAAAAAAA
+    
+    BBBBBBBBBBB
+
 to produce children of the following forms.
-```
-AAABBBBBBBB
 
-BBBAAAAAAAA
-```
+    AAABBBBBBBB
+
+    BBBAAAAAAAA
+
 The shared index of the genomes where they are sliced is called the crossover
 point.
 
@@ -127,8 +127,8 @@ for various reasons, such as differing initial weights.
 In any case, if we breed these two via crossover akin to the one used above,
 we get the following unsatisfying results.
 
-![Competing Conventions 03](./doc/competing_conventions_child_01.png)
-![Competing Conventions 04](./doc/competing_conventions_child_02.png)
+![Competing Conventions Disaster 01](./doc/competing_conventions_child_01.png)
+![Competing Conventions Disaster 02](./doc/competing_conventions_child_02.png)
 
 Both children are missing a crucial component and result in dead ends
 for the evolutionary process.
@@ -148,3 +148,49 @@ competing conventions problem.
 NEAT used in this project is a simplified version of the original, hence
 does not implement all the ideas to their fullest extent found in the paper.
 Below is the analysis of NEAT made for this project.
+
+## Basic Idea
+
+With specified number of input variables and output variables, we start with
+a single hidden node and additional bias node for the input layer. For example,
+if the number of inputs and outputs is 2, we start with the following
+topology.
+
+![Simple NEAT 01](./doc/simple_neat_01.png)
+
+During the initial phase, we generate a whole population of genomes, i.e.
+bunch of ANNs with the same topology as above, initialized with random weights,
+and let each genome play the game. Once every genome receives a score,
+we then create the next generation of genomes from the previous generation.
+Some genomes with best scores are kept for the next generation. Some are
+mutated by randomly perturbing its weights. The rest are bred by mixing weights,
+as usage of crossovers do not make much sense yet since there is only one
+hidden node per genome.
+
+This is repeated for some set time to let genomes optimize as much as possible
+under the current given topology. Each population (batch of genomes) is given
+generation number, and once the generation number passes certain threshold,
+we introduce an extra hidden node to certain proportion of the population.
+
+![Simple NEAT 02](./doc/simple_neat_02.png)
+
+When breeding genomes with at least one of the parents with more than one node,
+we use crossovers as explained before (i.e. cutting the networks vertically).
+If the topologies do not match, we simply append the additional structure
+to the smaller one. That is, combining the two below
+
+![Simple NEAT parent 01](./doc/simple_neat_parent_01.png)
+![Simple NEAT parent 02](./doc/simple_neat_parent_02.png)
+
+results in the following child.
+
+![Simple NEAT child](./doc/simple_neat_child.png)
+
+Once extra nodes are introduced into the population, as breeding via crossovers
+and mutation via perturbations preserves the number of hidden nodes, eventually,
+the entire population is replaced by genomes with two hidden nodes (unless a
+genome with simpler structure continues to outperform all other genomes
+and is kept through generations).
+
+
+ 
