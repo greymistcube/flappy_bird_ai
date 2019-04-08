@@ -1,4 +1,4 @@
-# Flappy Bird with NEAT
+# Flappy Bird Clone with NEAT
 
 This project was inspired by
 [this paper.](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf)
@@ -39,7 +39,7 @@ searches for the right topology on its own could then be considered as
 automation at the highest level, and could become an indispensable tool for ML
 with ANNs.
 
-## TWEANN, neuroevolution, and NEAT
+## TWEANN, Neuroevolution, and NEAT
 
 Topology and weight evolving artificial neural network (TWEANN), as its name
 suggests, is a type of ANN where it learns to decide what the optimal topology
@@ -61,5 +61,16 @@ a genome. In any case, neuroevolution of augmented topologies (NEAT), cited
 at the very beginning, is a proposed solution to this problem. Main ideas
 of NEAT include genetic encoding (encoding the structure of ANN as a collection
 of node genes and connection genes), historical markings (keeping track of
-the history of genes), and protection of innovation through speciation
-(protecting newly mutated genome).
+the history of genes), protection of innovation through speciation
+(protecting newly mutated genome), and incremental growth from minimal structure
+(to minimize the size of the structure).
+
+## NEAT for Flappy Bird Clone
+
+NEAT used in this project is a simplified version of the original, hence
+does not implement all the ideas to their fullest extent found in the paper.
+Below is the analysis of NEAT made for this project.
+
+In the paper, genetic encoding and historical markings are used to enable
+crossover breeding of genomes, which in turn is an effort to solve the
+competing conventions problem.
