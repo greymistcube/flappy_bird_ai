@@ -84,7 +84,7 @@ Conceptually, a crossover refers to a breeding of two parent genomes such as
 to produce children of the following forms.
 
     AAABBBBBBBB
-
+flappy
     BBBAAAAAAAA
 
 The shared index of the genomes where they are sliced is called the crossover
@@ -193,3 +193,72 @@ and mutation via perturbations preserves the number of hidden nodes, eventually,
 the entire population is replaced by genomes with two hidden nodes (unless a
 genome with simpler structure continues to outperform all other genomes
 and is kept through generations).
+
+## Discussion
+
+One can easily find an example of an implementation of AI learning to play
+flappy bird clones. There are indeed rather abundant amount of such examples
+on github, youtube, etc. In this section, I try to make a case of why
+this project is at least somewhat different. The goal wasn't simply to beat
+a flappy bird clone but to get a deeper insight into how NEAT works.
+
+### Flappy Bird is Too Easy to Solve
+
+As a human player, flappy bird isn't particularly thought demanding game.
+The logic is very simple. One looks ahead for the next hole, and if the bird
+is too low, you jump. If the bird is too high, you let it fall until the
+position of the bird becomes too low compared to the position of the hole.
+
+With this in mind, if the variables such as distance between walls and
+size of holes are set generously, the game can be learned with an ANN
+with the following topology.
+
+![Super Simple ANN](./doc/super_simple.png)
+
+As node b is for bias, this ANN only takes in x1 from the game and decideds
+whether to jump or not. For x1, we can simply give the height difference
+between the bird and center of the next hole. And yes, I have tried this
+and it was successful.
+
+### Is Flappy Bird Really That Easy?
+
+However, there are several problems with the above approach. One that is more
+readily noticable from the picture above is that this is essentially
+equivalent to solving a linear equation. Although it is nice to see
+ANN figure out the proper associated constants (weights that is), we really
+don't need fancy ANN implemented for such a simple task.
+
+The bigger problem that is harder to notice is that one responsible for
+designing such algorithm is essentially *inadvertently solving the problem for
+the AI during the preprocessing stage.* Although preprocessing of data is
+necessary for solving the majority of problems in this field, as we are often
+limited by small amount of resources (computing power) compared to the
+vast dimensionality of the solution space to search for, doing this for such
+a simple game as flappy bird gives us little to no insight into how an ANN
+works.
+
+I would say since flappy bird is rather a simple game, we have a good
+oppertunity to tease out these inadvertant preprocessing part and try to
+come up with an algorithm that is more general and is in accordance with
+the goal of NEAT.
+
+### Let's Make Flappy Bird Harder for Computers
+
+When a player *decides* to look for the next hole, a decision has been made
+about which wall to look for (pipes in case of the original game). We ignore
+the one behind the bird, and look for the one in front of the bird. This
+seemingly simple task is already dealing with three variables, making
+comparisons, and deciding what to use and what not to.
+
+Similarly, when we give the height difference between the bird and the hole as
+an input value, we are doing the arithmetics work for the computer.
+
+Additionally, we can throw in the y velocity value of the bird as one
+of input values, even though it is not relavent in beating the game,
+just to see if the algorithm learns to ignore it.
+
+With all this in mind, we can start with a structure something like below.
+
+![Initial Topology](./doc/flappy_neat_initial.png)
+
+### Necessity of NEAT
