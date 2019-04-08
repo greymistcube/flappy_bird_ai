@@ -1,5 +1,7 @@
 # Flappy Bird Clone with NEAT
 
+![Game Screen](./doc/peek.gif)
+
 This project was inspired by
 [this paper.](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf)
 This is my own take on neuroevolution borrowing many ideas presented in the
@@ -76,7 +78,7 @@ discussed later on.
 Conceptually, a crossover refers to a breeding of two parent genomes such as
 
     AAAAAAAAAAA
-    
+
     BBBBBBBBBBB
 
 to produce children of the following forms.
@@ -191,6 +193,3 @@ and mutation via perturbations preserves the number of hidden nodes, eventually,
 the entire population is replaced by genomes with two hidden nodes (unless a
 genome with simpler structure continues to outperform all other genomes
 and is kept through generations).
-
-
- 
