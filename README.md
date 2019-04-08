@@ -65,12 +65,86 @@ the history of genes), protection of innovation through speciation
 (protecting newly mutated genome), and incremental growth from minimal structure
 (to minimize the size of the structure).
 
+The first three of the four main ideas are all tied with the concept of
+crossovers in an effort to solve the competing conventions problem. Although
+I won't go into any details about how these ideas are implemented in the paper,
+I'll go over crossovers and the competing conventions problem as it will be
+discussed later on.
+
+## Crossovers
+
+Conceptually, a crossover refers to a breeding of two parent genomes such as
+```
+AAAAAAAAAAA
+
+BBBBBBBBBBB
+```
+to produce children of the following forms.
+```
+AAABBBBBBBB
+
+BBBAAAAAAAA
+```
+The shared index of the genomes where they are sliced is called the crossover
+point.
+
+Now, let's consider the following two networks.
+
+![Crossover 01](./doc/crossover_parent_01.png)
+![Crossover 02](./doc/crossover_parent_02.png)
+
+Suppose, we want to produce a child network that inherits its features from
+its parents. Perhaps the most naive way to go about this is to create a
+child with the same network structure as the two above and randomly copying
+edge weights from either parent with equal probability of 0.5. This would
+be a bad for the following reason. 
+
+If parents were already trained to some extent, then each hidden node
+represents some feature of the network by meaningfully combining the
+values from the previous layer. If we take a hidden node from each parent
+at the same position and mix up the weights connected to it, there is no
+reason why the resulting node should be helpful.
+
+However, if we were to breed these two using a crossover, we can get
+something much more sensible like this.
+
+![Crossover 03](./doc/crossover_child.png)
+
+## Competing Conventions Problem
+
+Although in the example above, we have "cut" the parents vertically,
+this is usually not the best way to perfrom crossovers. Consider
+another pair of parents below.
+
+![Competing Conventions 01](./doc/competing_conventions_parent_01.png)
+![Competing Conventions 02](./doc/competing_conventions_parent_02.png)
+
+Despite being in different locations, nodes with the same color represent
+the same feature, that is, associated weights are the same. If all three
+features are crucial in solving the problem, this situation may arise naturally
+for various reasons, such as differing initial weights.
+
+In any case, if we breed these two via crossover akin to the one used above,
+we get the following unsatisfying results.
+
+![Competing Conventions 03](./doc/competing_conventions_child_01.png)
+![Competing Conventions 04](./doc/competing_conventions_child_02.png)
+
+Both children are missing a crucial component and result in dead ends
+for the evolutionary process.
+
+There is no easy solution to this problem but various methods have been
+proposed to mediate this issue as much as possible. Usually this envolves
+encoding the network structure in a certain way, such that either the cases like
+above don't arise naturally during the evolutionary process or crossovers
+themselves do not produce such undesirable results.
+
+Basically, in the paper cited above, genetic encoding and historical markings
+are used to enable crossover breeding of genomes that helps to avoid the
+competing conventions problem.
+
 ## NEAT for Flappy Bird Clone
 
 NEAT used in this project is a simplified version of the original, hence
 does not implement all the ideas to their fullest extent found in the paper.
 Below is the analysis of NEAT made for this project.
-
-In the paper, genetic encoding and historical markings are used to enable
-crossover breeding of genomes, which in turn is an effort to solve the
-competing conventions problem.
