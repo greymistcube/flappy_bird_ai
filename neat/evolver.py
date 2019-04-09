@@ -8,8 +8,8 @@ MUTATE_RATE = 0.1
 DIVERGE_STRENGTH = 0.1
 # this is to prevent getting stuck in local minima
 mutate_strength_rule = lambda: np.random.choice(
-    [0.1, 0.2, 0.4],
-    p=[0.9, 0.09, 0.01]
+    [0.1, 0.2, 0.3, 0.4],
+    p=[0.4, 0.3, 0.2, 0.1]
 )
 
 def get_survived(genomes, n):
