@@ -22,7 +22,7 @@ class NeatCore(lib.Core):
     # overriden methods
     def __init__(self):
         super().__init__()
-        self.population = neat.Population(self._num_input, self._num_output)
+        self.population = neat.Population(self._num_input, self._num_output, pop_size=100)
         # set num_balls to population size
         self.settings.set_num_balls(self.population.pop_size)
         return
