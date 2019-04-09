@@ -1,4 +1,6 @@
 ---
+title: Flappy Bird Clone with NEAT
+layout: default
 use_math: true
 ---
 
