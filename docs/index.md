@@ -285,7 +285,9 @@ the problem of beating the game has actually gotten harder. Although
 the search space has expaneded in terms of its size and dimension,
 if the solution space can be expressed as a single linear inequality of the form
 
-$$ w_{0}*b + w_{1}*x_{1} + ... + w_{6}*x_{6} > c $$
+$$
+    w_{0} \cdot b + w_{1} \cdot x_{1} + ... + w_{6} \cdot x_{6} > c
+$$
 
 then the above starting structure would be sufficient and there is no need
 for NEAT to evolve topological complexity any further.
@@ -296,7 +298,7 @@ the topology of ANNs must grow at some point to accomodate this.
 ### Topological Sufficiency Single Hidden Layer
 
 Even without adding additional layers, if enough number of hidden nodes
-are added, any solution space can be approximated within any &epsilon; margin.
+are added, any solution space can be approximated within any $\epsilon$ margin.
 This is due to the
 [universal approximation theorem.](https://en.wikipedia.org/wiki/Universal_approximation_theorem)
 
