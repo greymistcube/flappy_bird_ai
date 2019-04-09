@@ -1,3 +1,7 @@
+---
+use_math: true
+---
+
 # Flappy Bird Clone with NEAT
 
 ![Game Screen](./img/peek.gif)
@@ -278,9 +282,11 @@ Before moving on with NEAT, we do need to consider beforehand whether
 the problem of beating the game has actually gotten harder. Although
 the search space has expaneded in terms of its size and dimension,
 if the solution space can be expressed as a single linear inequality of the form
-```
-w0*b + w1*x1 + ... + w6*x6 > c
-```
+
+\\[
+    w0*b + w1*x1 + ... + w6*x6 > c
+\\]
+
 then the above starting structure would be sufficient and there is no need
 for NEAT to evolve topological complexity any further.
 
