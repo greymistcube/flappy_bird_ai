@@ -84,7 +84,7 @@ Conceptually, a crossover refers to a breeding of two parent genomes such as
 to produce children of the following forms.
 
     AAABBBBBBBB
-flappy
+
     BBBAAAAAAAA
 
 The shared index of the genomes where they are sliced is called the crossover
