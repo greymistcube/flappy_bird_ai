@@ -1,7 +1,7 @@
 ---
-title: Flappy Bird Clone with NEAT
 layout: default
-use_math: true
+title: Flappy Bird Clone with NEAT
+mathjax: true
 ---
 
 # Flappy Bird Clone with NEAT
