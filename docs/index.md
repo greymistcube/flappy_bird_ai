@@ -1,6 +1,5 @@
 ---
 layout: post
-title: Flappy Bird Clone with NEAT
 mathjax: true
 ---
 
@@ -98,8 +97,7 @@ point.
 
 Now, let's consider the following two networks.
 
-![Crossover 01](./img/crossover_parent_01.png)
-![Crossover 02](./img/crossover_parent_02.png)
+![Crossover 02](./img/crossover_parents.png)
 
 Suppose, we want to produce a child network that inherits its features from
 its parents. Perhaps the most naive way to go about this is to create a
@@ -124,8 +122,7 @@ Although in the example above, we have "cut" the parents vertically,
 this is usually not the best way to perfrom crossovers. Consider
 another pair of parents below.
 
-![Competing Conventions 01](./img/competing_conventions_parent_01.png)
-![Competing Conventions 02](./img/competing_conventions_parent_02.png)
+![Competing Conventions Parents](./img/competing_conventions_parents.png)
 
 Despite being in different locations, nodes with the same color represent
 the same feature, that is, associated weights are the same. If all three
@@ -135,8 +132,8 @@ for various reasons, such as differing initial weights.
 In any case, if we breed these two via crossover akin to the one used above,
 we get the following unsatisfying results.
 
-![Competing Conventions Disaster 01](./img/competing_conventions_child_01.png)
-![Competing Conventions Disaster 02](./img/competing_conventions_child_02.png)
+![Competing Conventions Children](./img/competing_conventions_children.png)
+
 
 Both children are missing a crucial component and result in dead ends
 for the evolutionary process.
@@ -187,8 +184,7 @@ we use crossovers as explained before (i.e. cutting the networks vertically).
 If the topologies do not match, we simply append the additional structure
 to the smaller one. That is, combining the two below
 
-![Simple NEAT parent 01](./img/simple_neat_parent_01.png)
-![Simple NEAT parent 02](./img/simple_neat_parent_02.png)
+![Simple NEAT parent 01](./img/simple_neat_parents.png)
 
 results in the following child.
 
@@ -219,7 +215,7 @@ With this in mind, if the variables such as distance between walls and
 size of holes are set generously, the game can be learned with an ANN
 with the following topology.
 
-![Super Simple ANN](./img/super_simple.png)
+![Super Simple ANN](./img/super_simple_ann.png)
 
 As node b is for bias, this ANN only takes in x1 from the game and decideds
 whether to jump or not. For x1, we can simply give the height difference
@@ -307,7 +303,6 @@ possible ANN structure with relu and step activation for hidden and output nodes
 respectively.
 
 ![UAT ANN Example 01](./img/uat_example_01.png)
-![UAT Step Example 01](./img/step_example_01.png)
 
 This network can solve any step function of the form appearing on the right
 where a is an arbitrary constant (in fact, the network can also solve the
@@ -318,13 +313,12 @@ form on the right in the diagrams below (again, the function also may go
 from 1 to 0 back to 1).
 
 ![UAT ANN Example 02](./img/uat_example_02.png)
-![UAT Step Example 02](./img/step_example_02.png)
 
 It is then not hard to see that a network only with more hidden nodes
 that can solve something more complicated like below (that is,
 with at least 8 nodes to be exact).
 
-![UAT Step Example 03](./img/step_example_03.png)
+![UAT Step Example 03](./img/complex_step_example.png)
 
 ### Getting out of Local Maxima
 
