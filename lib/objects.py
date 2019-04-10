@@ -1,9 +1,14 @@
 import random
 import pygame
 
-from lib.constants import *
+from lib.settings import Settings
+from lib.constants import WIDTH, HEIGHT
+from lib.constants import START_POSITION, GRAVITY, MOVE_SPEED
+from lib.constants import HOLE_SIZE
+from lib.constants import WALL_SPEED, CLOUD_SPEED
 
 pygame.init()
+settings = Settings()
 
 def load_image(file):
     image = pygame.image.load(file)
@@ -41,7 +46,8 @@ class Ball:
         return
 
     def move(self):
-        # huge pain caused by using move instead of center
+        # center should be used instead of move method
+        # otherwise misalignment becomes a problem down the line
         self.y = self.y + self.velocity
         self.rect.center = (self.x, self.y)
         return
@@ -51,7 +57,7 @@ class Ball:
         return
 
     def jump(self):
-        self.velocity = JUMP_VELOCITY
+        self.velocity = settings.jump_velocity
 
     def get_surface(self):
         if self.velocity < 0:
@@ -115,10 +121,29 @@ class Buildings:
         self.rect.top = self.y
 
     def move(self):
-        self.x += BACKGROUND_SPEED
+        self.x += WALL_SPEED
         if self.x <= -self.__tile_width:
             self.x += self.__tile_width
         self.rect.left = self.x
 
     def get_surface(self):
         return self.__surface
+
+class Cloud:
+    __image = load_image("./rsc/img/cloud.png")
+
+    def __init__(self):
+        self.x = random.randint(0, WIDTH + self.__image.get_width())
+        self.y = random.randint(
+            int(HEIGHT * (1/8)),
+            int(HEIGHT * (1/2))
+        )
+        self.rect = self.__image.get_rect()
+        self.rect.center = (self.x, self.y)
+
+    def move(self):
+        self.x += CLOUD_SPEED
+        self.rect.center = (self.x, self.y)
+
+    def get_surface(self):
+        return self.__image

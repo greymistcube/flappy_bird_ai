@@ -5,38 +5,10 @@ import pygame
 from lib.settings import Settings
 from lib.environment import Environment
 from lib.objects import Ball
-
-# display
-WIDTH, HEIGHT = (320, 240)
-RESOLUTION = (WIDTH, HEIGHT)
-ZOOM_LEVEL = 3
-
-# game objects
-START_POSITION = (80, 80)
-WALL_DISTANCE = 240
-HOLE_SIZE = 80
-HOLE_Y_VARIANCE = 40
-
-# mechenics
-JUMP_VELOCITY = -4
-GRAVITY = 0.2
-MOVE_SPEED = -2
-
-# other settings
-TICKRATE = 60
-SCROLL_SPEED = -1
-
-# predefined color tuples
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-SKY_BLUE = (127, 191, 255)
-
-# variable settings
-num_balls = 1
-tickrate = TICKRATE
+from lib.constants import BLACK
 
 pygame.init()
-#font = pygame.font.Font("./rsc/font/munro.ttf", 10)
+settings = Settings()
 
 class TextRenderer:
     __font = pygame.font.Font("./rsc/font/munro.ttf", 10)
@@ -84,7 +56,6 @@ class Events:
 class Core:
     def __init__(self):
         self.game_count = 0
-        self.settings = Settings()
         self.events = Events()
         self.text_renderer = TextRenderer()
 
@@ -99,11 +70,11 @@ class Core:
         self.env = Environment(self.balls)
 
     def new_balls(self):
-        return [Ball() for _ in range(self.settings.num_balls)]
+        return [Ball() for _ in range(settings.num_balls)]
 
     def update(self):
         self.events.update()
-        self.settings.update(self.events)
+        settings.event_update(self.events)
         self.env.update(self.events)
 
     def game_over(self):
