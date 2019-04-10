@@ -38,7 +38,6 @@ class Ball:
         else:
             self.color = color
         self.x, self.y = START_POSITION
-        # self.y = random.randint(40, 200)
         self.rect.center = (self.x, self.y)
         self.velocity = 0.0
         self.score = 0
