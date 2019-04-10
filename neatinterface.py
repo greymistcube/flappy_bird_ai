@@ -20,9 +20,9 @@ class NeatCore(lib.Core):
     }
 
     # overriden methods
-    def __init__(self):
-        super().__init__()
-        self.population = neat.Population(self._num_input, self._num_output, pop_size=100)
+    def __init__(self, difficulty="normal", num_balls=100):
+        super().__init__(difficulty)
+        self.population = neat.Population(self._num_input, self._num_output, pop_size=num_balls)
         # set num_balls to population size
         self.settings.set_num_balls(self.population.pop_size)
         return

@@ -2,21 +2,23 @@ import sys
 import pygame
 
 import lib
-from lib.constants import WIDTH, HEIGHT, ZOOM_LEVEL
+from lib.constants import WIDTH, HEIGHT
+import argparser
 
 import neatinterface
 
 if __name__ == "__main__":
+    args = argparser.get_args()
+
     # pygame initialization
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH * ZOOM_LEVEL, HEIGHT * ZOOM_LEVEL))
+    screen = pygame.display.set_mode((WIDTH * args.z, HEIGHT * args.z))
     clock = pygame.time.Clock()
 
-    if len(sys.argv) > 1 and sys.argv[1] == "neat":
-        core = neatinterface.NeatCore()
+    if args.ai == "neat":
+        core = neatinterface.NeatCore(args.d, args.n)
     else:
-        core = lib.Core()
-
+        core = lib.Core(args.d)
     core.new_game()
 
     # main loop

@@ -8,7 +8,6 @@ from lib.objects import Ball
 from lib.constants import BLACK
 
 pygame.init()
-#font = pygame.font.Font("./rsc/font/munro.ttf", 10)
 
 class TextRenderer:
     __font = pygame.font.Font("./rsc/font/munro.ttf", 10)
@@ -54,9 +53,9 @@ class Events:
         return
 
 class Core:
-    def __init__(self):
+    def __init__(self, difficulty="normal"):
         self.game_count = 0
-        self.settings = Settings()
+        self.settings = Settings(difficulty)
         self.events = Events()
         self.text_renderer = TextRenderer()
 
@@ -68,7 +67,7 @@ class Core:
     def new_game(self):
         self.game_count += 1
         self.balls = self.new_balls()
-        self.env = Environment(self.balls)
+        self.env = Environment(self.settings, self.balls)
 
     def new_balls(self):
         return [Ball() for _ in range(self.settings.num_balls)]
