@@ -16,13 +16,13 @@ DIFFICULTY_SETTINGS = {
 }
 
 class Settings:
-    _instance = None
+    __instance = None
 
     # implementing this class as singleton
     def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
+        if cls.__instance is None:
+            cls.__instance = super().__new__(cls)
+        return cls.__instance
 
     # this should be called at least once with args in main.py
     def __init__(self, args=None):
@@ -36,4 +36,3 @@ class Settings:
     def event_update(self, events):
         self.tickrate = TICKRATE * events.multiplier
         return
-

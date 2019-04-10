@@ -90,9 +90,9 @@ def _breed(parents):
         else:
             small_genome = parents[1]
             large_genome = parents[0]
-        splice_idx = np.random.randint(1, small_genome.h_dim + 1)
-        w1 = np.vstack([small_genome.w1[:splice_idx], large_genome.w1[splice_idx:]])
-        w2 = np.hstack([small_genome.w2[:, :splice_idx], large_genome.w2[:, splice_idx:]])
+        slice_idx = np.random.randint(1, small_genome.h_dim + 1)
+        w1 = np.vstack([small_genome.w1[:slice_idx], large_genome.w1[slice_idx:]])
+        w2 = np.hstack([small_genome.w2[:, :slice_idx], large_genome.w2[:, slice_idx:]])
 
     child.w1 = w1
     child.w2 = w2

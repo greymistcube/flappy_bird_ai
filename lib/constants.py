@@ -9,7 +9,6 @@ HOLE_SIZE = 80
 HOLE_Y_VARIANCE = 40
 
 # mechenics
-JUMP_VELOCITY = -4
 GRAVITY = 0.2
 MOVE_SPEED = -2
 
