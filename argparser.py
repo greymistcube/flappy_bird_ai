@@ -55,4 +55,9 @@ def get_args():
         metavar="AI",
     )
     args = parser.parse_args()
+
+    # if ai is not given set it to 1
+    if args.ai is None:
+        args.n = 1
+
     return args

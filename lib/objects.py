@@ -1,12 +1,14 @@
 import random
 import pygame
 
+from lib.settings import Settings
 from lib.constants import WIDTH, HEIGHT
-from lib.constants import START_POSITION, GRAVITY, JUMP_VELOCITY, MOVE_SPEED
+from lib.constants import START_POSITION, GRAVITY, MOVE_SPEED
 from lib.constants import HOLE_SIZE
 from lib.constants import WALL_SPEED, CLOUD_SPEED
 
 pygame.init()
+settings = Settings()
 
 def load_image(file):
     image = pygame.image.load(file)
@@ -55,7 +57,7 @@ class Ball:
         return
 
     def jump(self):
-        self.velocity = JUMP_VELOCITY
+        self.velocity = settings.jump_velocity
 
     def get_surface(self):
         if self.velocity < 0:
