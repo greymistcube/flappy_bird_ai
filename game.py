@@ -1,28 +1,31 @@
-import sys
 import pygame
 
 import lib
-from lib.constants import WIDTH, HEIGHT, ZOOM_LEVEL
+from lib.settings import Settings
+from lib.constants import WIDTH, HEIGHT
+import argparser
 
 import neatinterface
 
 if __name__ == "__main__":
+    args = argparser.get_args()
+
     # pygame initialization
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH * ZOOM_LEVEL, HEIGHT * ZOOM_LEVEL))
+    screen = pygame.display.set_mode((WIDTH * args.z, HEIGHT * args.z))
     clock = pygame.time.Clock()
 
-    if len(sys.argv) > 1 and sys.argv[1] == "neat":
+    settings = Settings(args)
+    if args.ai == "neat":
         core = neatinterface.NeatCore()
     else:
         core = lib.Core()
-
     core.new_game()
 
     # main loop
     while True:
         # set tick rate to 60 per second
-        clock.tick(core.settings.tickrate)
+        clock.tick(settings.tickrate)
 
         # update game state
         core.update()
