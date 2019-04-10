@@ -298,9 +298,9 @@ are added, any solution space can be approximated within any $\epsilon$ margin.
 This is due to the
 [universal approximation theorem.](https://en.wikipedia.org/wiki/Universal_approximation_theorem)
 
-Without going into full detail, let's consider the following simplest
-possible ANN structure with relu and step activation for hidden and output nodes
-respectively.
+Without going into full detail, let's see how this might work on the simplest
+possible case. Consider the following simplest possible ANN structure with
+relu and step activation for hidden and output nodes respectively.
 
 ![UAT ANN Example 01](./img/uat_example_01.png)
 
@@ -320,8 +320,83 @@ with at least 8 nodes to be exact).
 
 ![UAT Step Example 03](./img/complex_step_example.png)
 
-### Getting out of Local Maxima
+We can now easily see that with enough hidden nodes, any function
+
+$$
+f: \mathbb{R} \rightarrow \{0, 1\}
+$$
+
+can *solved* if $f$ has only finite number of steps.
+
+### What is Happening Under the Hood
+
+Note that there is no mention of backpropagation so far. Although being
+*the staple method* for solving problems with ANNs, it isn't used here.
+Since this is a kind of unsupervised learning, it is not obvious how
+backpropagation can be employed as we don't have the labels for the outputs
+we get during the process.
+
+Then how does the algorithm know how to "climb up" its score surface
+via seemingly performing gradient descent? Well, the short answer is that
+it isn't doing any gradient descent, at least not by computing
+the gradient beforehand. Let's go back to the basics.
+
+### Learning about Gradient Descent Again
+
+![Simple NEAT 01](./img/simple_neat_01.png)
+
+When we look at this structure, we immediately know that this is associated
+with some function
+
+$$
+f: \mathbb{R}^{2} \rightarrow \mathbb{R}^{2}
+$$
+
+where $f(x_{1}, x_{2}) = (y_{1}, y_{2})$. Note that, provided with some
+fixed $b$ and all its weights, we know exactly what $f$ is already!
+
+When we are trying to solve a problem via ANN, all we are doing is
+looking for the right weights $w_{1}, \dots, w_{5}$ (since there are 5 weights
+in the diagram) that makes the *score* associated with this network,
+something we get from an objective function, as low (or high in case of ascents)
+as possible. To really understand this, we must recognize that there is another
+layer of abstraction that needs to be noticed. Mathematically, given a network
+structure and an objective function, this defines the following function
+
+$$
+F: \mathbb{R}^{5} \rightarrow \mathbb{R}.
+$$
+
+What $f$ really is just a point on a hypersurface defined by $F$.
+The *gradient* part of the term gradient descent refers to the
+gradient of $F$ and backpropagation is just a method to compute such
+gradient *at* $f$.
+
+If we write $F(W) = Y$, as long as $Y$ is given somehow,
+$F$ is really rather agnostic about $y_{1}$, and $y_{2}$ appearing in $f$.
+In standard supervised learning, backpropagation and gradient descent
+is possible because the relationship between $Y$ and $y_{1}, y_{2}$ are well
+known.
+
+### Random Walk on a Hypersurface
+
+In an unsupervised learning environment, the relationship between $Y$ and
+$y$'s are unclear. What this translates to is that at any given point $f$,
+we have no idea what the gradient of $F$ is at $f$. That is, we don't know
+which direction is "down". However, there are at least two ways to go
+down the hill anyway; grid search and random walks.
+
+In either case, what we do is take the height measurement of bunch of points
+on $F$ in some neightborhood of $f$ and go in the direction where the
+measurement is the lowest. As a result, we get a new point for $f$ and
+we can repeat the process.
+
+Going back to the game, when we play the game with an AI with 100 birds,
+we are essetially searching in 100 different directions, trying to decide
+which way to go.
 
 ### Hyperparameter Tuning in Augmenting Topologies
 
 ### Returning to the Competing Conventions Problem
+
+### Future Plans
