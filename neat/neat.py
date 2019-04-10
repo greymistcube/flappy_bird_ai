@@ -73,7 +73,7 @@ class Population:
             mutated = evolver.get_mutated(self.genomes, self.num_mutate - self.num_diverge)
             diverged = evolver.get_diverged(self.genomes, self.num_diverge)
         else:
-            mutated = evolver.get_mutated(self.genomes, self.num_mutate - self.num_diverge)
+            mutated = evolver.get_mutated(self.genomes, self.num_mutate)
             diverged = []
         bred = evolver.get_bred(self.genomes, self.num_breed)
 

@@ -1,12 +1,14 @@
 import random
 import pygame
 
+from lib.settings import Settings
 from lib.objects import Ball, Wall, Buildings, Cloud
 from lib.constants import RESOLUTION, WIDTH, HEIGHT
 from lib.constants import HOLE_Y_VARIANCE
 from lib.constants import SKY_BLUE
 
 pygame.init()
+settings = Settings()
 
 # maybe these functions should be inside core
 def out_of_bounds(game_object):
@@ -37,8 +39,7 @@ class Environment:
     for _ in range(__num_clouds):
         clouds.append(Cloud())
 
-    def __init__(self, settings, balls):
-        self.settings = settings
+    def __init__(self, balls):
         self.score = 0
         self.balls = balls
         self.num_alive = len(self.balls)
@@ -125,7 +126,7 @@ class Environment:
             x = WIDTH
             # x = 0
         else:
-            x = self.walls[-1].x + self.settings.wall_distance
+            x = self.walls[-1].x + settings.wall_distance
 
         y = (HEIGHT // 2) + random.randint(-HOLE_Y_VARIANCE, HOLE_Y_VARIANCE)
 
