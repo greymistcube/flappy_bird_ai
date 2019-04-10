@@ -1,7 +1,10 @@
 import neat
 import lib
 
+from lib.settings import Settings
 from lib.constants import WIDTH, HEIGHT
+
+settings = Settings()
 
 # game specific neat interface
 # this straps on to the original Core class
@@ -22,9 +25,11 @@ class NeatCore(lib.Core):
     # overriden methods
     def __init__(self):
         super().__init__()
-        self.population = neat.Population(self._num_input, self._num_output)
-        # set num_balls to population size
-        self.settings.set_num_balls(self.population.pop_size)
+        self.population = neat.Population(
+            self._num_input,
+            self._num_output,
+            pop_size=settings.num_balls
+        )
         return
 
     def new_balls(self):
@@ -33,7 +38,7 @@ class NeatCore(lib.Core):
 
     def update(self):
         self.events.update()
-        self.settings.update(self.events)
+        settings.event_update(self.events)
         # this part overrides keyboard evaluated jumps
         # before calling the update for the environment
         self.events.jumps = [

@@ -4,20 +4,26 @@ import numpy as np
 import neat.evolver as evolver
 from neat.genome import Genome
 
+POP_SIZE = 100
+SURVIVE_RATE = 0.2
+MUTATE_RATE = 0.4
+BREED_RATE = 0.4
+DIVERGE_RATE = 0.2
+
 class Population:
-    # for now pop_size should be the sum of the rest
-    pop_size = 200
-    num_survive = 40
-    num_mutate = 80
-    num_breed = 80
-    num_diverge = 20
-    def diverge_threshold(self, n):
+    def get_diverge_threshold(self, n):
         return np.log10(n + 1)
 
-    def __init__(self, num_input, num_output):
+    def __init__(self, num_input, num_output, pop_size=POP_SIZE):
         self.generation = 1
         self.num_input = num_input
         self.num_output = num_output
+
+        self.pop_size = pop_size
+        self.num_survive = int(self.pop_size * SURVIVE_RATE)
+        self.num_mutate = int(self.pop_size * MUTATE_RATE)
+        self.num_breed = self.pop_size - int(self.num_survive + self.num_mutate)
+        self.num_diverge = int(self.pop_size * DIVERGE_RATE)
 
         # creation of initial gene pool
         self.genomes = [
@@ -61,13 +67,13 @@ class Population:
         print("----------------")
 
         survived = evolver.get_survived(self.genomes, self.num_survive)
-        threshold = self.diverge_threshold(self.generation)
+        threshold = self.get_diverge_threshold(self.generation)
         temp = [(genome.h_dim < threshold) for genome in self.genomes]
         if all(temp):
             mutated = evolver.get_mutated(self.genomes, self.num_mutate - self.num_diverge)
             diverged = evolver.get_diverged(self.genomes, self.num_diverge)
         else:
-            mutated = evolver.get_mutated(self.genomes, self.num_mutate - self.num_diverge)
+            mutated = evolver.get_mutated(self.genomes, self.num_mutate)
             diverged = []
         bred = evolver.get_bred(self.genomes, self.num_breed)
 
