@@ -15,13 +15,6 @@ class NeatCore(lib.Core):
     __num_input = 6
     __num_output = 1
 
-    __genome_to_color = {
-        "survived": "blue",
-        "mutated": "green",
-        "bred": "yellow",
-        "diverged": "red"
-    }
-
     # overriden methods
     def __init__(self):
         super().__init__()
@@ -33,18 +26,13 @@ class NeatCore(lib.Core):
         return
 
     def new_balls(self):
-        colors = self.get_colors()
-        return [lib.objects.Ball(color) for color in colors]
+        return [SmartBall(genome) for genome in self.population.genomes]
 
     def update(self):
         self.events.update()
-        settings.event_update(self.events)
-        # this part overrides keyboard evaluated jumps
-        # before calling the update for the environment
-        self.events.jumps = [
-            y[0]
-            for y in self.get_Y(self.get_X())
-        ]
+        settings.update(self.events)
+        for ball in self.balls:
+            ball.think(self.get_x(ball, self.env.walls))
         self.env.update(self.events)
 
     def game_over(self):
@@ -103,8 +91,25 @@ class NeatCore(lib.Core):
     def get_Y(self, X):
         return self.population.predicts(X)
 
-    def get_colors(self):
-        return [
-            self.__genome_to_color[genome.genome_type]
-            for genome in self.population.genomes
-        ]
+class SmartBall(lib.objects.Ball):
+    __genome_to_color = {
+        "survived": "blue",
+        "mutated": "green",
+        "bred": "yellow",
+        "diverged": "red"
+    }
+
+    def __init__(self, genome):
+        super().__init__()
+
+        # override randomized color
+        self.genome = genome
+        self.color = self.get_color(genome)
+
+    def get_color(self, genome):
+        return self.__genome_to_color[genome.genome_type]
+    
+    def think(self, x):
+        if self.genome.predict(x)[0]:
+            self.jump()
+        return

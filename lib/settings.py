@@ -33,6 +33,6 @@ class Settings:
             self.num_balls = args.n
         return
 
-    def event_update(self, events):
+    def update(self, events):
         self.tickrate = TICKRATE * events.multiplier
         return

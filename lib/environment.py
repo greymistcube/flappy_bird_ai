@@ -52,10 +52,6 @@ class Environment:
         return
 
     def update(self, events):
-        self.cycle_update()
-        self.event_update(events)
-
-    def cycle_update(self):
         # move game objects
         self.buildings.move()
         for ball in self.balls:
@@ -89,13 +85,6 @@ class Environment:
                 self.num_alive -= 1
 
         self.score += 1
-        return
-
-    def event_update(self, events):
-        # jump event
-        for i, jump in enumerate(events.jumps):
-            if self.balls[i].alive and jump:
-                self.balls[i].jump()
         return
 
     def game_over(self):

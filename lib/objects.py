@@ -46,11 +46,8 @@ class Ball:
         return
 
     def update(self, events):
-        if self.jump_state:
+        if events.jump:
             self.jump()
-            self.jump_state = False
-        self.move()
-        self.accelerate()
         return
 
     def move(self):
