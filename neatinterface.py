@@ -37,7 +37,7 @@ class NeatCore(lib.Core):
 
     def game_over(self):
         if self.env.game_over():
-            scores = [ball.score for ball in self.env.balls]
+            scores = [ball.score for ball in self.balls]
             self.population.score_genomes(scores)
             self.population.evolve_population()
             return True
@@ -82,14 +82,6 @@ class NeatCore(lib.Core):
             ]
         else:
             return [0] * self.__num_input
-
-    def get_X(self):
-        return [
-            self.get_x(ball, self.env.walls) for ball in self.env.balls
-        ]
-
-    def get_Y(self, X):
-        return self.population.predicts(X)
 
 class SmartBall(lib.objects.Ball):
     __genome_to_color = {

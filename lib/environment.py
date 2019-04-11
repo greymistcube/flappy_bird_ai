@@ -41,7 +41,8 @@ class Environment:
 
     def __init__(self, balls):
         self.score = 0
-        self.balls = balls
+        # make a shallow copy to keep track of live balls
+        self.balls = balls[:]
         self.num_alive = len(self.balls)
 
         self.walls = []
@@ -76,12 +77,14 @@ class Environment:
         self.add_clouds()
 
         # kill a ball if necessary
-        for ball in self.balls:
+        # a shallow copy is required for proper removal
+        for ball in self.balls[:]:
             if ball.alive and \
                 (out_of_bounds(ball) or collision(ball, self.walls)):
                 # assign score to the ball before killing it off
                 ball.score = self.score
                 ball.alive = False
+                self.balls.remove(ball)
                 self.num_alive -= 1
 
         self.score += 1
@@ -89,9 +92,6 @@ class Environment:
 
     def game_over(self):
         return self.num_alive == 0
-
-    def get_scores(self):
-        return [ball.score for ball in self.balls]
 
     def get_surface(self):
         self.surface.fill(SKY_BLUE)
@@ -101,8 +101,7 @@ class Environment:
         for cloud in self.clouds:
             self.surface.blit(cloud.get_surface(), cloud.rect)
         for ball in self.balls:
-            if ball.alive:
-                self.surface.blit(ball.get_surface(), ball.rect)
+            self.surface.blit(ball.get_surface(), ball.rect)
         for wall in self.walls:
             self.surface.blit(wall.get_surface(), wall.rect)
 
