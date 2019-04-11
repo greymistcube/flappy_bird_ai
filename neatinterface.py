@@ -12,10 +12,10 @@ settings = Settings()
 # and adding extensions
 class NeatCore(lib.Core):
     # game specific variables
-    _num_input = 6
-    _num_output = 1
+    __num_input = 6
+    __num_output = 1
 
-    _genome_to_color = {
+    __genome_to_color = {
         "survived": "blue",
         "mutated": "green",
         "bred": "yellow",
@@ -26,8 +26,8 @@ class NeatCore(lib.Core):
     def __init__(self):
         super().__init__()
         self.population = neat.Population(
-            self._num_input,
-            self._num_output,
+            self.__num_input,
+            self.__num_output,
             pop_size=settings.num_balls
         )
         return
@@ -93,7 +93,7 @@ class NeatCore(lib.Core):
                 walls[1].y / HEIGHT
             ]
         else:
-            return [0] * self._num_input
+            return [0] * self.__num_input
 
     def get_X(self):
         return [
@@ -105,6 +105,6 @@ class NeatCore(lib.Core):
 
     def get_colors(self):
         return [
-            self._genome_to_color[genome.genome_type]
+            self.__genome_to_color[genome.genome_type]
             for genome in self.population.genomes
         ]
