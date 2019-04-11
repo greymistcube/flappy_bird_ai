@@ -14,15 +14,11 @@ paper. This is just the first small project for implementing the idea from
 scratch, and not everything is implemented to its full extent. Its possible
 shortcomings and improvements will be discussed below.
 
-Use `python game.py` to run the game normally, or `python game.py neat`
-to run it with NEAT AI. Dependencies include `numpy` and `pygame` with
-versions `1.16.2` and `1.9.4` used respectively when building the project.
-
 I strongly recommend to anyone interested to follow the link and read the paper
 as most of the material does not require extensive expertise and concepts are
 clearly explained.
 
-## Introduction
+# Introduction
 
 One of the biggest roadblocks to training an artificial neural network (ANN)
 is determining the proper topology of the network. If the size of the network
@@ -46,7 +42,7 @@ searches for the right topology on its own could then be considered as
 automation at the highest level, and could become an indispensable tool for ML
 with ANNs.
 
-## TWEANN, Neuroevolution, and NEAT
+# TWEANN, Neuroevolution, and NEAT
 
 Topology and weight evolving artificial neural network (TWEANN), as its name
 suggests, is a type of ANN where it learns to decide what the optimal topology
@@ -148,7 +144,7 @@ Basically, in the paper cited above, genetic encoding and historical markings
 are used to enable crossover breeding of genomes that helps to avoid the
 competing conventions problem.
 
-## NEAT for Flappy Bird Clone
+# NEAT for Flappy Bird Clone
 
 NEAT used in this project is a simplified version of the original, hence
 does not implement all the ideas to their fullest extent found in the paper.
@@ -196,7 +192,7 @@ the entire population is replaced by genomes with two hidden nodes (unless a
 genome with simpler structure continues to outperform all other genomes
 and is kept through generations).
 
-## Discussion
+# Discussion
 
 One can easily find an example of an implementation of AI learning to play
 flappy bird clones. There are indeed rather abundant amount of such examples
@@ -204,7 +200,7 @@ on github, youtube, etc. In this section, I try to make a case of why
 this project is at least somewhat different. The goal wasn't simply to beat
 a flappy bird clone but to get a deeper insight into how NEAT works.
 
-### Flappy Bird is Too Easy to Solve
+## Flappy Bird is Too Easy to Solve
 
 As a human player, flappy bird isn't particularly thought demanding game.
 The logic is very simple. One looks ahead for the next hole, and if the bird
@@ -222,7 +218,7 @@ whether to jump or not. For x1, we can simply give the height difference
 between the bird and center of the next hole. And yes, I have tried this
 and it was successful.
 
-### Is Flappy Bird Really That Easy?
+## Is Flappy Bird Really That Easy?
 
 However, there are several problems with the above approach. One that is more
 readily noticable from the picture above is that this is essentially
@@ -244,7 +240,7 @@ oppertunity to tease out these inadvertant preprocessing part and try to
 come up with an algorithm that is more general and is in accordance with
 the goal of NEAT.
 
-### Let's Make Flappy Bird Harder for Computers
+## Let's Make Flappy Bird Harder for Computers
 
 When a player *decides* to look for the next hole, a decision has been made
 about which wall to look for (pipes in case of the original game). We ignore
@@ -263,7 +259,7 @@ With all this in mind, we can start with a structure something like below.
 
 ![Initial Topology](./img/flappy_neat_initial.png)
 
-### Details on Implementation
+## Details on Implementation
 
 Implementation is done pretty straightforwardly. Even with further increase in
 structural complexity, we only get simple fully connected feed foward networks
@@ -274,12 +270,13 @@ like below.
 The hidden layer uses relu and the output layer (or rather node in this case)
 uses step function as activation in current implementation.
 
-### Necessity of NEAT
+## Necessity of NEAT
 
 Before moving on with NEAT, we do need to consider beforehand whether
 the problem of beating the game has actually gotten harder. Although
 the search space has expaneded in terms of its size and dimension,
-if the solution space can be expressed as a single linear inequality of the form
+if the solution space can be expressed as a single linear inequality of
+the form
 
 $$
     w_{0} \cdot b + w_{1} \cdot x_{1} + ... + w_{6} \cdot x_{6} > c
@@ -291,16 +288,16 @@ for NEAT to evolve topological complexity any further.
 Long story short, we now need a network capable of solving XOR problems, so
 the topology of ANNs must grow at some point to accomodate this.
 
-### Topological Sufficiency Single Hidden Layer
+## Topological Sufficiency of a Single Hidden Layer
 
 Even without adding additional layers, if enough number of hidden nodes
 are added, any solution space can be approximated within any $\epsilon$ margin.
 This is due to the
 [universal approximation theorem.](https://en.wikipedia.org/wiki/Universal_approximation_theorem)
 
-Without going into full detail, let's consider the following simplest
-possible ANN structure with relu and step activation for hidden and output nodes
-respectively.
+Without going into full detail, let's see how this might work on the simplest
+possible case. Consider the following simplest possible ANN structure with
+relu and step activation for hidden and output nodes respectively.
 
 ![UAT ANN Example 01](./img/uat_example_01.png)
 
@@ -320,8 +317,124 @@ with at least 8 nodes to be exact).
 
 ![UAT Step Example 03](./img/complex_step_example.png)
 
-### Getting out of Local Maxima
+We can now easily see that with enough hidden nodes, any function
 
-### Hyperparameter Tuning in Augmenting Topologies
+$$
+f: \mathbb{R} \rightarrow \{0, 1\}
+$$
 
-### Returning to the Competing Conventions Problem
+can *solved* if $f$ has only finite number of steps.
+
+## Under the Hood
+
+Note that there is no mention of backpropagation so far. Although being
+*the staple method* for solving problems with ANNs, it isn't used here.
+Since this is a kind of unsupervised learning, it is not obvious how
+backpropagation can be employed as we don't have the labels for the outputs
+we get during the process.
+
+Then how does the algorithm know how to "climb up" its score surface
+via seemingly performing gradient descent? Well, the short answer is that
+it isn't doing any gradient descent, at least not by computing
+the gradient beforehand. Let's go back to the basics.
+
+## The Basics of Gradient Descent
+
+![Simple NEAT 01](./img/simple_neat_01.png)
+
+When we look at this structure, we immediately know that this is associated
+with some function
+
+$$
+f: \mathbb{R}^{2} \rightarrow \mathbb{R}^{2}
+$$
+
+where $f(x_{1}, x_{2}) = (y_{1}, y_{2})$. Note that, provided with some
+fixed $b$ and all its weights, we know exactly what $f$ is already!
+
+When we are trying to solve a problem via ANN, all we are doing is
+looking for the right weights $w_{1}, \dots, w_{5}$ (since there are 5 weights
+in the diagram) that makes the *score* associated with this network,
+something we get from an objective function, as low (or high in case of ascents)
+as possible. To really understand this, we must recognize that there is another
+layer of abstraction that needs to be noticed. Mathematically, given a network
+structure and an objective function, this defines the following function
+
+$$
+F: \mathbb{R}^{5} \rightarrow \mathbb{R}.
+$$
+
+What $f$ really is just a point on a hypersurface defined by $F$.
+The *gradient* part of the term gradient descent refers to the
+gradient of $F$ and backpropagation is just a method to compute such
+gradient *at* $f$.
+
+If we write $F(W) = Y$, as long as $Y$ is given somehow,
+$F$ is really rather agnostic about $y_{1}$, and $y_{2}$ appearing in $f$.
+In standard supervised learning, backpropagation and gradient descent
+is possible because the relationship between $Y$ and $y_{1}, y_{2}$ are well
+known.
+
+## Random Walk on a Hypersurface
+
+In an unsupervised learning environment, the relationship between $Y$ and
+$y$'s are unclear. What this translates to is that at any given point $f$,
+we have no idea what the gradient of $F$ is at $f$. That is, we don't know
+which direction is "down". However, there are at least two ways to go
+down the hill anyway; grid search and random walks.
+
+In either case, what we do is take the height measurement of bunch of points
+on $F$ in some neightborhood of $f$ and go in the direction where the
+measurement is the lowest. As a result, we get a new point for $f$ and
+we can repeat the process.
+
+Going back to the game, when we play the game with an AI with 100 birds,
+we are essetially searching in 100 different directions, trying to decide
+which way to go.
+
+## Hyperparameter Tuning in NEAT
+
+In terms of avoiding local optima, there is nothing new here. This is a problem
+present in all ANNs and all we can do is just cross the fingers hoping that
+stochastic determination of step sizes and directions is enough to prevent
+this issue.
+
+As I have mentioned, NEAT is designed to determine the minimal possible
+topology for the problem and this is done by gradually growing the complexity
+of the networks present. Ideally, each function space of dimension equal to
+the number of weights in the network should be explored sufficiently
+before adding in a new node. We do not want to "miss" finding a solution
+in a lower dimension by growing the network complexity too fast,
+as with each extra hidden node, the search space grows exponentially.
+On the other hand, we do not want to grow the network too slow, as this would
+aslo result in wasted time.
+
+## Returning to the Competing Conventions Problem
+
+I haven't really looked into this problem extensively, but I'll try my bset
+to give my vague reasoning behind why this might not be a serious issue
+(or I could just be blabbering some nonsensical ideas).
+
+![Neat Progression](./img/neat_progression.png)
+
+When we start with the simplest possible structure, during the evolutionary
+process, most genomes are likely to converge to one model. Let's say this
+group of genomes learn a feature represented by a green colored node.
+Somewhere down the line, when a new node is introduced, another feature
+may be learned represented by a yellow colored node. Since we are systematically
+adding a hidden node sequentially, the left most figure becomes the figure
+in the middle above. Green may be affected by yellow but but it would be very
+unlikely that somehow the features get swapped resulting in the right most
+figure.
+
+# Future Plans
+
+This project was done in part for self studying and fun. I have tried to make
+the codebase as modular as possible, so it may be overly bloated (also with
+"bad" habits from coding in Java creeping up every now and then).
+Despite my effort to make the game harder, the algorithm still tends to
+learn how to play the game fairly quickly, so my sense of duty for optimization
+was thrown out the window long time ago. I might come back and make some
+improvements here and there, but my immediate plan is to deploy the NEAT
+variant developed here to another project and make improvements then and there.
+A link may be added when the next project page is ready.
