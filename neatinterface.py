@@ -31,7 +31,8 @@ class NeatCore(lib.Core):
     def update(self):
         self.events.update()
         settings.update(self.events)
-        for ball in self.balls:
+        # only cycle through balls alive in the environment for optimization
+        for ball in self.env.balls:
             ball.think(self.get_x(ball, self.env.walls))
         self.env.update(self.events)
 
