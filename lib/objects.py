@@ -42,6 +42,12 @@ class Ball:
         self.velocity = 0.0
         self.score = 0
         self.alive = True
+        self.jump_state = False
+        return
+
+    def update(self, events):
+        if events.jump:
+            self.jump()
         return
 
     def move(self):

@@ -35,7 +35,7 @@ class TextRenderer:
 class Events:
     def __init__(self):
         self.multiplier = 1
-        self.jumps = [False]
+        self.jump = False
         return
 
     def update(self):
@@ -46,7 +46,7 @@ class Events:
 
         # check for pressed keys and update variables accordingly
         pressed_keys = pygame.key.get_pressed()
-        self.jumps = [pressed_keys[pygame.K_SPACE]]
+        self.jump = pressed_keys[pygame.K_SPACE]
         for i, pressed in enumerate(pressed_keys[pygame.K_0:pygame.K_0 + 10]):
             if pressed:
                 self.multiplier = i
@@ -74,7 +74,10 @@ class Core:
 
     def update(self):
         self.events.update()
-        settings.event_update(self.events)
+        settings.update(self.events)
+        # only cycle through balls alive in the environment for optimization
+        for ball in self.env.balls:
+            ball.update(self.events)
         self.env.update(self.events)
 
     def game_over(self):
