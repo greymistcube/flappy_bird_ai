@@ -5,7 +5,7 @@ mathjax: true
 
 # Flappy Bird Clone with NEAT
 
-![Game Screen](./img/peek.gif)
+![Game Screen](./img/flappy_bird_neat_peek.gif)
 
 This project was inspired by
 [this paper.](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf)
