@@ -11,7 +11,7 @@ pygame.init()
 settings = Settings()
 
 class TextRenderer:
-    __font = pygame.font.Font("./rsc/font/munro.ttf", 10)
+    __font = pygame.font.Font("./rsc/font/monogram.ttf", 16)
     __line_height = __font.get_linesize()
 
     # render a single line of text
@@ -36,6 +36,7 @@ class Events:
     def __init__(self):
         self.multiplier = 1
         self.jump = False
+        self.info = False
         return
 
     def update(self):
@@ -43,6 +44,8 @@ class Events:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_i:
+                self.info = not self.info
 
         # check for pressed keys and update variables accordingly
         pressed_keys = pygame.key.get_pressed()
@@ -85,7 +88,8 @@ class Core:
 
     def draw(self):
         surface = self.env.get_surface()
-        surface.blit(self.get_info_surface(), (0, 0))
+        if self.events.info:
+            surface.blit(self.get_info_surface(), (0, 0))
         return surface
 
     def get_info_surface(self):
