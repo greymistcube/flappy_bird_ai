@@ -50,8 +50,9 @@ class Events:
         # check for pressed keys and update variables accordingly
         pressed_keys = pygame.key.get_pressed()
         self.jump = pressed_keys[pygame.K_SPACE]
-        for i, pressed in enumerate(pressed_keys[pygame.K_0:pygame.K_0 + 10]):
-            if pressed:
+
+        for i in range(10):
+            if pressed_keys[pygame.K_0 + i]:
                 self.multiplier = i
                 break
         return
