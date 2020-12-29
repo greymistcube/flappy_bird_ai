@@ -67,9 +67,9 @@ This project is released under the [MIT License.][MIT_url]
 See the [LICENSE](./LICENSE) file for details.
 
 <!-- Markdown link & image definitions -->
-[pygame_img]: https://img.shields.io/badge/pygame-1.9.4-brightgreen.svg
+[pygame_img]: https://img.shields.io/badge/pygame-2.0.1-brightgreen.svg
 [pygame_url]: https://www.pygame.org/
-[numpy_img]: https://img.shields.io/badge/numpy-1.16.2-brightgreen.svg
+[numpy_img]: https://img.shields.io/badge/numpy-1.19.4-brightgreen.svg
 [numpy_url]: https://www.numpy.org/
 [MIT_img]: https://img.shields.io/badge/license-MIT-blue.svg
 [MIT_url]: https://opensource.org/licenses/MIT
